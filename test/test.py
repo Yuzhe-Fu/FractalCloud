@@ -1,21 +1,44 @@
-import torch
+# import torch
+# import pdb
+# support_xyz = torch.load('./data/PointNeXt-S/firstlayer_grouping_in_out/support_xyz.pth') # ([64, 1024, 3])
+# query_xyz = torch.load('./data/PointNeXt-S/firstlayer_grouping_in_out/query_xyz.pth')   # ([64, 512, 3]) FPS之后的xyz
+# idx = torch.load('./data/PointNeXt-S/firstlayer_grouping_in_out/idx.pth')  # ([64, 512, 32] group操作之后的idx)
 
-# 示例张量
-xyz = torch.tensor([[[1, 2, 3], [4, 5, 6], [7, 8, 9], [2, 3, 4], [5, 6, 7]]])
-xyz_L1 = torch.tensor([[[7, 8, 9], [5, 6, 7], [1, 2, 3]]])
-indx_xyz_L1 = torch.tensor([[[1, 2, 1], [0, 2, 1]]])
+# xyz_trans    = torch.load('./data/PointNeXt-S/firstlayer_grouping_in_out/xyz_trans.pth') # ([64, 3, 1024]
+# grouped_xyz = torch.load('./data/PointNeXt-S/firstlayer_grouping_in_out/grouped_xyz.pth') # ([64, 3, 512, 32]) group之后的xyz坐标
 
-# 创建一个映射，将 xyz_L1 中的点映射到 xyz 中的索引
-mapping = {}
-for i in range(xyz.size(1)):
-    point = tuple(xyz[0, i].tolist())
-    mapping[point] = i
+# print(xyz_trans.size())
+# print(query_xyz.size())
+# print(grouped_xyz.size())
+# print(support_xyz.size())
+# print(idx.size())
 
-# 使用这个映射来转换 indx_xyz_L1 中的索引
-indx_xyz = torch.zeros_like(indx_xyz_L1)
-for i in range(indx_xyz_L1.size(1)):
-    for j in range(indx_xyz_L1.size(2)):
-        point = tuple(xyz_L1[0, indx_xyz_L1[0, i, j]].tolist())
-        indx_xyz[0, i, j] = mapping[point]
+# print(support_xyz[0, idx[0, 0, 0], :].tolist())
+# print(query_xyz[0, 0, :].tolist())
+# print(grouped_xyz[0, :, 0, 0].tolist())
 
-print(indx_xyz)
+# pdb.set_trace() 
+# save the printed result into txt file
+          
+# with open('./test/output.txt', 'w') as f:
+#     for i in range(512):
+#         f.write(f'---i={i}\n')
+#         f.write(f'{support_xyz[0, idx[0, i, 0], :]}\n')
+#         f.write(f'{query_xyz[0, i, :]}\n')
+#         f.write(f'{grouped_xyz[0, :, i, 0]}\n')
+
+import numpy as np
+
+# Example tensors
+A = np.array([[[1, 2, 3],
+               [4, 5, 6],
+               [7, 8, 9]]])  # Shape: [1, 3, 3]
+B = np.array([2, 1, 3])     # Shape: [3]
+
+# Step 1: Get the sorted indices of B
+sorted_indices = torch.argsort(B)
+
+# Step 2: Reorder A using these indices along the second dimension
+A_reordered = A[:, sorted_indices, :]
+print(sorted_indices)
+print("Reordered A:\n", A_reordered)

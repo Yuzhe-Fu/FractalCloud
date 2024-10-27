@@ -468,7 +468,7 @@ def blockNum_count(xyz_input, fps_out, blockNum):
 
 
 xyz_0    = torch.load('./data/PointNeXt-S/model_encoder_encoder_1_0_grouper/support_xyz.pt').cuda()
-
+# [64,1024,3]
 # xyz_0    = torch.load('./data/TensorData_S3DIS/support_xyz_grouper_train_24k.pt')
 # # pdb.set_trace()
 # xyz_out0 = torch.load('./data/TensorData_FilterPrune-v4-1-4/model_encoder_encoder_1_0_grouper/grouped_xyz.pt')
@@ -533,7 +533,6 @@ xyz_out_ours_point = torch.gather(xyz_0, 1, xyz_out_ours.unsqueeze(-1).expand(-1
 
 
 for a in range(64):
-
     sum_16b = 0
     sum_our = 0
     for b in range(BlockNum_MAE):

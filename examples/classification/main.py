@@ -4,9 +4,18 @@ from torch import multiprocessing as mp
 from examples.classification.train import main as train
 from examples.classification.pretrain import main as pretrain
 from openpoints.utils import EasyConfig, dist_utils, find_free_port, generate_exp_directory, resume_exp_directory, Wandb
+import random
+import torch
+
+def set_random_seed(seed):
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
 
 
 if __name__ == "__main__":
+    set_random_seed(42)
     parser = argparse.ArgumentParser('S3DIS scene segmentation training')
     parser.add_argument('--cfg', type=str, required=True, help='config file')
     parser.add_argument('--profile', action='store_true', default=False, help='set to True to profile speed')
@@ -16,7 +25,7 @@ if __name__ == "__main__":
     cfg.update(opts)
     if cfg.seed is None:
         cfg.seed = np.random.randint(1, 10000)
-
+    
     # init distributed env first, since logger depends on the dist info.
     cfg.rank, cfg.world_size, cfg.distributed, cfg.mp = dist_utils.get_dist_info(cfg)
     cfg.sync_bn = cfg.world_size > 1
