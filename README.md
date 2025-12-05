@@ -1,6 +1,6 @@
 # FractalCloud
 
-Official PyTorch implementation for the following paper:
+Official PyTorch implementation for the HPCA'26 paper:
 
 **FractalCloud: A Fractal-Inspired Architecture for  Efficient Large-Scale Point Cloud Processing**
 
@@ -72,6 +72,7 @@ Alternatively, models can be downloaded manually from: [Google Drive link](https
 
 Please place downloaded checkpoints into their corresponding subfolders under `./Pretrained_Models`
 
+For reference and reproducibility, we also provide the evaluation logs associated with all evaluated models.
 
 ## Experiments (Model Accuracy)
 
