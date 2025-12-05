@@ -162,8 +162,8 @@ CUDA_VISIBLE_DEVICES=0 python examples/segmentation/main.py \
     --cfg cfgs/s3dis/pointvector-l.yaml \
     mode=test \
     --fractal_stages "1" \
-    --fractal_th 512 \
-    --pretrained_path ./Pretrained_Models/PVr_SEG_fractal/checkpoint/s3dis-pointvector-l_ckpt_best_704.pth
+    --fractal_th 256 \
+    --pretrained_path ./Pretrained_Models/PVr_SEG_fractal/checkpoint/s3dis-pointvector-l_ckpt_best_7033.pth
 ```
 
 ## Some Notes:
