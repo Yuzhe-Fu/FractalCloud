@@ -1,122 +1,191 @@
-# PointNeXt
-[![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/pointnext-revisiting-pointnet-with-improved/semantic-segmentation-on-s3dis)](https://paperswithcode.com/sota/semantic-segmentation-on-s3dis?p=pointnext-revisiting-pointnet-with-improved)
-[![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/pointnext-revisiting-pointnet-with-improved/3d-point-cloud-classification-on-scanobjectnn)](https://paperswithcode.com/sota/3d-point-cloud-classification-on-scanobjectnn?p=pointnext-revisiting-pointnet-with-improved)
-[![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/pointnext-revisiting-pointnet-with-improved/semantic-segmentation-on-s3dis-area5)](https://paperswithcode.com/sota/semantic-segmentation-on-s3dis-area5?p=pointnext-revisiting-pointnet-with-improved)
-[![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/pointnext-revisiting-pointnet-with-improved/3d-point-cloud-classification-on-modelnet40)](https://paperswithcode.com/sota/3d-point-cloud-classification-on-modelnet40?p=pointnext-revisiting-pointnet-with-improved)
-
-### [[arXiv]](https://arxiv.org/abs/2206.04670) | [[OpenPoints Library]](https://github.com/guochengqian/openpoints) | [[Online Documentation]](https://guochengqian.github.io/PointNeXt/)
-
-<p align="center">
-<img src="docs/projects/misc/effects_training_scaling.png" width=85% height=85% class="center">
-</p>
+# FractalCloud
 
 Official PyTorch implementation for the following paper:
 
-**PointNeXt: Revisiting PointNet++ with Improved Training and Scaling Strategies**
+**FractalCloud: A Fractal-Inspired Architecture for  Efficient Large-Scale Point Cloud Processing**
 
-*by [Guocheng Qian](https://www.gcqian.com/), [Yuchen Li](https://cemse.kaust.edu.sa/vision-cair/people/person/yuchen-li), [Houwen Peng](https://houwenpeng.com/), [Jinjie Mai](https://cemse.kaust.edu.sa/people/person/jinjie-mai), [Hasan Hammoud](https://cemse.kaust.edu.sa/ece/people/person/hasan-abed-al-kader-hammoud), [Mohamed Elhoseiny](http://www.mohamed-elhoseiny.com/), [Bernard Ghanem](https://www.bernardghanem.com/)*
+*by [Yuzhe Fu](https://yuzhe-fu.github.io), [Changchun Zhou](https://changchun-zhou.github.io), [Hancheng Ye](https://hanchengye.com), Bowen Duan, Qiyu Huang, [Chiyue Wei](https://dubcyfor3.github.io), [Cong Guo](https://guocong.me), [Hai “Helen” Li](https://ece.duke.edu/people/hai-helen-li/), [Yiran Chen](https://ece.duke.edu/people/yiran-chen/)*
 
-**TL;DR:** We propose improved training and model scaling strategies to boost PointNet++ to the state-of-the-art level. PointNet++ with the proposed model scaling is named as PointNeXt, the next version of PointNets. 
+## Abstract
+This repository contains the software implementation of the FractalCloud architecture proposed in the paper. The core fractal algorithm is implemented in a thread-parallel recursive manner. All block-parallel point operations are validated through recursive execution to ensure numerical consistency between the software implementation and the hardware accelerator.
 
+Noted: Since our focus is to validate the algorithmic accuracy, we do not introduce custom GPU kernel optimizations for GPU performance.
 
-<p align="center">
-<img src="docs/projects/misc/pointnext.jpeg" width=85% height=85% class="center">
-</p>
+After installation, this repository allows reproducing the network performance reported in the paper on:
 
-## News
--  :boom: Sep, 2022: [**PointNeXt**](https://arxiv.org/pdf/2206.04670v1.pdf) accepted by NeurIPS'22
--  :pushpin:  [Houwen Peng](https://houwenpeng.com/) is hiring research interns at Microsoft Research Asia. Contact: houwen.peng@microsoft.com 
--  :pushpin:  [Bernard Ghanem](https://www.bernardghanem.com/) is hiring visiting students. Monthly salary is paid with free housing. Contact Guocheng if interested: guocheng.qian@kaust.edu.sa
--  :boom: Jun, 2022: Code released
+- **Classification**: ModelNet40 (PointNet++, PointNeXt-S)
+- **Segmentation**: S3DIS (PointNet++, PointNeXt-S, PointVector-L)
 
-
-## Features
-In the PointNeXt project, we propose a new and flexible codebase for point-based methods, namely [**OpenPoints**](https://github.com/guochengqian/openpoints). The biggest difference between OpenPoints and other libraries is that we focus more on reproducibility and fair benchmarking. 
-
-1. **Extensibility**: supports many representative networks for point cloud understanding, such as *PointNet, DGCNN, DeepGCN, PointNet++, ASSANet, PointMLP*, and our ***PointNeXt***. More networks can be built easily based on our framework since OpenPoints support a wide range of basic operations including graph convolutions, self-attention, farthest point sampling, ball query, *e.t.c*.
-
-2. **Reproducibility**: all implemented models are trained on various tasks at least three times. Mean±std is provided in the [PointNeXt paper](https://arxiv.org/abs/2206.04670).  *Pretrained models and logs* are available.
-
-3. **Fair Benchmarking**: in PointNeXt, we find a large part of performance gain is due to the training strategies. In OpenPoints, all models are trained with the improved training strategies and all achieve much higher accuracy than the original reported value. 
-
-4. **Ease of Use**: *Build* model, optimizer, scheduler, loss function,  and data loader *easily from cfg*. Train and validate different models on various tasks by simply changing the `cfg\*\*.yaml` file. 
-
-   ```
-   model = build_model_from_cfg(cfg.model)
-   criterion = build_criterion_from_cfg(cfg.criterion_args)
-   ```
-   Here is an example of `pointnet.yaml` (model configuration for PointNet model):
-   ```python
-   model:
-     NAME: BaseCls
-     encoder_args:
-       NAME: PointNetEncoder
-       in_channels: 4
-     cls_args:
-       NAME: ClsHead
-       num_classes: 15
-       in_channels: 1024
-       mlps: [512,256]
-       norm_args: 
-         norm: 'bn1d'
-   ```
-
-5. **Online logging**: *Support [wandb](https://wandb.ai/)* for checking your results anytime anywhere. Just set `wandb.use_wandb=True` in your command.  
-
-   ![docs/misc/wandb.png](docs/misc/wandb.png)
-
----
 
 ## Installation
-We provide a simple bash file to install the environment:
 
+Firstly, please Clone the repository:
+
+```bash
+git clone https://github.com/Yuzhe-Fu/FractalCloud.git
+cd FractalCloud
 ```
-git clone --recurse-submodules git@github.com:guochengqian/PointNeXt.git
-cd PointNeXt
-source update.sh
+
+### Dataset Preparation
+To download **ModelNet40** and **S3DIS**, run:
+```bash
+source download_DS.sh
+```
+
+### Environment Setup
+
+We provide two environment setups: Docker (recommended) or local installation.
+
+#### Option 1: Docker (recommended)
+Ensure Docker is installed, then
+
+```bash
+# Download docker container
+gdown --fuzzy https://drive.google.com/file/d/1bjkS6beJeIV8MLgCd0CKbMack_s5fmAt/view?usp=share_link
+docker import FractalCloud_docker.tar fractalcloud_env:base
+# Please run this under ./FractalCloud
+docker run --name fractalcloud \
+  -it --gpus all --shm-size 32G \
+  -v $(pwd):/workspace \
+  fractalcloud_env:base \
+  /bin/bash
+```
+The container automatically activates the `openpoints` conda environment with all dependencies installed.
+
+### Option 2: Local installation
+
+We recommend CUDA 11.x (tested with CUDA 11.3). Using unsupported CUDA versions may lead to installation failures. You can verify your CUDA version by running `nvcc --version` before executing the installation script.
+
+Then run:
+```bash
 source install.sh
 ```
-Cuda-11.3 is required. Modify the `install.sh` if a different cuda version is used. See [Install](docs/index.md) for detail. 
 
-
-
-## Usage 
-Check our [online documentation](https://guochengqian.github.io/PointNeXt/) for detailed instructions. 
-
-A short instruction: all experiments follow the simple rule to train and test: 
+## Pretrained Models
+To download pretrained weights:
+```bash
+gdown --fuzzy --folder https://drive.google.com/drive/folders/1OOlyQGHXW8NpBIot6KYSG_NkGb3NBX-p?usp=share_link
 
 ```
-CUDA_VISIBLE_DEVICES=$GPUs python examples/$task_folder/main.py --cfg $cfg $kwargs
+
+Alternatively, models can be downloaded manually from: [Google Drive link](https://drive.google.com/drive/folders/1OOlyQGHXW8NpBIot6KYSG_NkGb3NBX-p?usp=share_link).
+
+Please place downloaded checkpoints into their corresponding subfolders under `./Pretrained_Models`
+
+
+## Experiments (Model Accuracy)
+
+All commands should be executed under:
+-  `./workspace` (Docker setup), or
+- `./FractalCloud` (local installation)
+
+Below we provide example commands for reproducing evaluation results.
+
+#### ModelNet40 Classification (PointNet++)
+
+**Baseline:** The 90.8% accuracy is referenced from Fig. 16 of the *Mesorasi* paper.  [[Link](https://ieeexplore.ieee.org/document/9251968)]
+
+```bash
+# Run with Fractal
+CUDA_VISIBLE_DEVICES=0 bash script/main_classification.sh \
+    cfgs/modelnet40ply2048/pointnet++.yaml \
+    mode=test \
+    --pretrained_path ./Pretrained_Models/PN++_CLA_fractal/checkpoint/modelnet40_pointnet++_ckpt_best_9056.pth \
+    --fractal_stages "0,1" \
+    --fractal_th 64
 ```
-- $GPUs is the list of GPUs to use, for most experiments (ScanObjectNN, ModelNet40, S3DIS), we only use 1 A100 (GPUs=0)
-- $task_folder is the folder name of the experiment. For example, for s3dis segmentation, $task_folder=s3dis
-- $cfg is the path to cfg, for example, s3dis segmentation, $cfg=cfgs/s3dis/pointnext-s.yaml
-- $kwargs are the other keyword arguments to use. For example, testing in S3DIS area 5, $kwargs should be `mode=test, --pretrained_path $pretrained_path`. 
 
+#### ModelNet40 Classification (PointNeXt-S)
+```bash
+# Baseline
+CUDA_VISIBLE_DEVICES=0 python examples/classification/main.py \
+    --cfg cfgs/modelnet40ply2048/pointnext-s.yaml \
+    mode=test \
+    --pretrained_path ./Pretrained_Models/PNt_CLA_original/checkpoint/modelnet40_pointnext-s_ckpt_best_9311.pth
 
-## Model Zoo (pretrained weights)
-see [Model Zoo](https://guochengqian.github.io/PointNeXt/modelzoo/). 
+# With Fractal
+CUDA_VISIBLE_DEVICES=0 python examples/classification/main.py \
+    --cfg cfgs/modelnet40ply2048/pointnext-s.yaml \
+    mode=test \
+    --fractal_stages "1,2" \
+    --fractal_th 64 \
+    --pretrained_path ./Pretrained_Models/PNT_CLA_fractal/checkpoint/modelnet40_pointnext-s_ckpt_best_9238.pth \
+```
 
-### Visualization
-More examples are available in the [paper](https://arxiv.org/abs/2206.04670). 
+#### S3DIS Segmentation (PointNet++)
+```bash
+# Baseline
+CUDA_VISIBLE_DEVICES=0 python examples/segmentation/main.py \
+    --cfg cfgs/s3dis/pointnet++.yaml \
+    mode=test \
+    --pretrained_path ./Pretrained_Models/PN++_SEG_original/checkpoint/s3dis-pointnet++_ckpt_best_616.pth
 
-![s3dis](docs/projects/misc/s3dis_vis.png)
-![shapenetpart](docs/projects/misc/shapenetpart_vis.png)
+# With Fractal
+CUDA_VISIBLE_DEVICES=0 python examples/segmentation/main.py \
+    --cfg cfgs/s3dis/pointnet++.yaml \
+    mode=test \
+    --fractal_stages "0" \
+    --fractal_th 256 \
+    --pretrained_path ./Pretrained_Models/PN++_SEG_fractal/checkpoint/s3dis-pointnet++_ckpt_best_618.pth
+```
 
----
+#### S3DIS Segmentation (PointNeXt-S)
+```bash
+# Baseline
+CUDA_VISIBLE_DEVICES=0 bash script/main_segmentation.sh \
+    cfgs/s3dis/pointnext-s.yaml \
+    wandb.use_wandb=False \
+    mode=test \
+    --pretrained_path ./Pretrained_Models/PNt_SEG_original/checkpoint/s3dis-pointnext-s_ckpt_best_626.pth
 
-### Acknowledgment
-This library is inspired by [PyTorch-image-models](https://github.com/rwightman/pytorch-image-models) and [mmcv](https://github.com/open-mmlab/mmcv). 
+# With Fractal
+CUDA_VISIBLE_DEVICES=0 bash script/main_segmentation.sh \
+    cfgs/s3dis/pointnext-s.yaml \
+    wandb.use_wandb=False \
+    mode=test \
+    --fractal_stages "1,2" \
+    --fractal_th 256 \
+    --pretrained_path ./Pretrained_Models/PNt_SEG_fractal/checkpoint/s3dis-pointnext-s_ckpt_best-623.pth
+```
 
+#### S3DIS Segmentation (PointVector-L)
+```bash
+# Baseline
+CUDA_VISIBLE_DEVICES=0 python examples/segmentation/main.py \
+    --cfg cfgs/s3dis/pointvector-l.yaml \
+    mode=test \
+    --pretrained_path ./Pretrained_Models/PVr_SEG_original/checkpoint/s3dis-pointvector-l_ckpt_best_708.pth
 
+# With Fractal
+CUDA_VISIBLE_DEVICES=0 python examples/segmentation/main.py \
+    --cfg cfgs/s3dis/pointvector-l.yaml \
+    mode=test \
+    --fractal_stages "1" \
+    --fractal_th 512 \
+    --pretrained_path ./Pretrained_Models/PVr_SEG_fractal/checkpoint/s3dis-pointvector-l_ckpt_best_704.pth
+```
 
-### Citation
-If you find PointNeXt or the OpenPoints codebase useful, please cite:
+## Some Notes:
+1. Some frequent commands for docker usage
+```bash
+exit                               # exit Docker container
+docker start fractalcloud          # start container
+docker exec -it fractalcloud /bin/bash   # attach interactive shell
+docker stop fractalcloud           # stop container
+```
+2. The `install.sh` in our repo is a simplified version of those from [PointNeXt](https://github.com/guochengqian/PointNeXt), with minimal dependencies tailored for FractalCloud. If you need the full functionality (e.g., running PointTransformer), please install the full environment following the instructions in the [PointNeXt](https://github.com/guochengqian/PointNeXt) repository.
+
+## Citation
+If you use this library, please kindly acknowledge our work:
 ```tex
-@InProceedings{qian2022pointnext,
-  title   = {PointNeXt: Revisiting PointNet++ with Improved Training and Scaling Strategies},
-  author  = {Qian, Guocheng and Li, Yuchen and Peng, Houwen and Mai, Jinjie and Hammoud, Hasan and Elhoseiny, Mohamed and Ghanem, Bernard},
-  booktitle=Advances in Neural Information Processing Systems (NeurIPS),
-  year    = {2022},
+@article{fu2025fractalcloud,
+  title={FractalCloud: A Fractal-Inspired Architecture for Efficient Large-Scale Point Cloud Processing},
+  author={Fu, Yuzhe and Zhou, Changchun and Ye, Hancheng and Duan, Bowen and Huang, Qiyu and Wei, Chiyue and Guo, Cong and Li, Hai and Chen, Yiran and others},
+  journal={arXiv preprint arXiv:2511.07665},
+  year={2025}
 }
 ```
+
+## Acknowledgment
+
+This repository builds upon [OpenPoints](https://github.com/guochengqian/openpoints) and [PointNeXt](https://github.com/guochengqian/PointNeXt). We thank the authors for their open-source contributions.

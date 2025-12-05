@@ -7,6 +7,9 @@ from openpoints.utils import EasyConfig, dist_utils, find_free_port, generate_ex
 import random
 import torch
 
+from openpoints.models.layers.group import set_fractal_group_config
+from openpoints.models.layers.subsample import set_fractal_fps_config
+
 def set_random_seed(seed):
     random.seed(seed)
     np.random.seed(seed)
@@ -19,10 +22,27 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser('S3DIS scene segmentation training')
     parser.add_argument('--cfg', type=str, required=True, help='config file')
     parser.add_argument('--profile', action='store_true', default=False, help='set to True to profile speed')
+    # fractal method
+    parser.add_argument('--fractal_stages', type=str, default=None,
+                       help='Stages to use fractal method, e.g., "1,2" or None for original method')
+    parser.add_argument('--fractal_th', type=int, default=64,
+                       help='Threshold for fractal method (default: 64)')
+
     args, opts = parser.parse_known_args()
     cfg = EasyConfig()
     cfg.load(args.cfg, recursive=True)
     cfg.update(opts)
+
+    if args.fractal_stages is not None:
+        fractal_stages = [int(x.strip()) for x in args.fractal_stages.split(',')]
+    else:
+        fractal_stages = None
+    fractal_th = args.fractal_th
+
+    # sampling and grouping sharing the same fractal config
+    set_fractal_group_config(stages=fractal_stages, th=fractal_th)
+    set_fractal_fps_config(stages=fractal_stages, th=fractal_th)
+
     if cfg.seed is None:
         cfg.seed = np.random.randint(1, 10000)
     

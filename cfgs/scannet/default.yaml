@@ -21,7 +21,7 @@ no_label: False
 feature_keys: pos,x,heights # appending heights has insiginificant effects on ScanNet
 
 num_classes: 20 
-batch_size: 2
+batch_size: 32
 val_batch_size: 1
 
 dataloader:

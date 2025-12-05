@@ -2,7 +2,6 @@ import os, logging, csv, numpy as np, wandb
 from tqdm import tqdm
 import torch, torch.nn as nn
 from torch import distributed as dist
-from torch.utils.tensorboard import SummaryWriter
 from openpoints.utils import set_random_seed, save_checkpoint, load_checkpoint, load_checkpoint_inv, resume_checkpoint, setup_logger_dist, \
     cal_model_parm_nums, Wandb
 from openpoints.utils import AverageMeter, ConfusionMatrix, get_mious
@@ -47,6 +46,7 @@ def print_cls_results(oa, macc, accs, epoch, cfg):
     s += f'E@{epoch}\tOA: {oa:3.2f}\tmAcc: {macc:3.2f}\n'
     logging.info(s)
 
+
 def main(gpu, cfg, profile=False):
     if cfg.distributed:
         if cfg.mp:
@@ -60,7 +60,8 @@ def main(gpu, cfg, profile=False):
     setup_logger_dist(cfg.log_path, cfg.rank, name=cfg.dataset.common.NAME)
     if cfg.rank == 0 :
         Wandb.launch(cfg, cfg.wandb.use_wandb)
-        writer = SummaryWriter(log_dir=cfg.run_dir)
+        # writer = SummaryWriter(log_dir=cfg.run_dir)
+        writer = None
     else:
         writer = None
     set_random_seed(cfg.seed + cfg.rank, deterministic=cfg.deterministic)
@@ -165,6 +166,7 @@ def main(gpu, cfg, profile=False):
 
     # ===> start training
     val_macc, val_oa, val_accs, best_val, macc_when_best, best_epoch = 0., 0., [], 0., 0., 0
+    saved_903_ckpt = False 
     model.zero_grad()
     for epoch in range(cfg.start_epoch, cfg.epochs + 1):
         if cfg.distributed:
@@ -190,14 +192,14 @@ def main(gpu, cfg, profile=False):
         lr = optimizer.param_groups[0]['lr']
         logging.info(f'Epoch {epoch} LR {lr:.6f} '
                      f'train_oa {train_oa:.2f}, val_oa {val_oa:.2f}, best val oa {best_val:.2f}')
-        if writer is not None:
-            writer.add_scalar('train_loss', train_loss, epoch)
-            writer.add_scalar('train_oa', train_macc, epoch)
-            writer.add_scalar('lr', lr, epoch)
-            writer.add_scalar('val_oa', val_oa, epoch)
-            writer.add_scalar('mAcc_when_best', macc_when_best, epoch)
-            writer.add_scalar('best_val', best_val, epoch)
-            writer.add_scalar('epoch', epoch, epoch)
+        # if writer is not None:
+        #     writer.add_scalar('train_loss', train_loss, epoch)
+        #     writer.add_scalar('train_oa', train_macc, epoch)
+        #     writer.add_scalar('lr', lr, epoch)
+        #     writer.add_scalar('val_oa', val_oa, epoch)
+        #     writer.add_scalar('mAcc_when_best', macc_when_best, epoch)
+        #     writer.add_scalar('best_val', best_val, epoch)
+        #     writer.add_scalar('epoch', epoch, epoch)
 
         if cfg.sched_on_epoch:
             scheduler.step(epoch)
@@ -209,21 +211,21 @@ def main(gpu, cfg, profile=False):
     # test the last epoch
     test_macc, test_oa, test_accs, test_cm = validate(model, test_loader, cfg)
     print_cls_results(test_oa, test_macc, test_accs, best_epoch, cfg)
-    if writer is not None:
-        writer.add_scalar('test_oa', test_oa, epoch)
-        writer.add_scalar('test_macc', test_macc, epoch)
+    # if writer is not None:
+    #     writer.add_scalar('test_oa', test_oa, epoch)
+    #     writer.add_scalar('test_macc', test_macc, epoch)
 
     # test the best validataion model
     best_epoch, _ = load_checkpoint(model, pretrained_path=os.path.join(
         cfg.ckpt_dir, f'{cfg.run_name}_ckpt_best.pth'))
     test_macc, test_oa, test_accs, test_cm = validate(model, test_loader, cfg)
-    if writer is not None:
-        writer.add_scalar('test_oa', test_oa, best_epoch)
-        writer.add_scalar('test_macc', test_macc, best_epoch)
+    # if writer is not None:
+    #     writer.add_scalar('test_oa', test_oa, best_epoch)
+    #     writer.add_scalar('test_macc', test_macc, best_epoch)
     print_cls_results(test_oa, test_macc, test_accs, best_epoch, cfg)
 
-    if writer is not None:
-        writer.close()
+    # if writer is not None:
+    #     writer.close()
     dist.destroy_process_group()
 
 def train_one_epoch(model, train_loader, optimizer, scheduler, epoch, cfg):

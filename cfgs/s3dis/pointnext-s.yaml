@@ -7,6 +7,7 @@ model:
   NAME: BaseSeg
   encoder_args:
     NAME: PointNextEncoder
+    stage: [0, 1, 2, 3, 4]
     blocks: [1, 1, 1, 1, 1]
     strides: [1, 4, 4, 4, 4]
     sa_layers: 2 

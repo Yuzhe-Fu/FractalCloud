@@ -2,7 +2,7 @@
 dataset:
   common:
     NAME: S3DIS
-    data_root: data/S3DIS/s3disfull
+    data_root: /data/S3DIS/s3disfull
     test_area: 5
     voxel_size: 0.04
   train:
@@ -12,7 +12,7 @@ dataset:
     presample: False
   val:
     split: val
-    voxel_max: null
+    voxel_max: null #24000
     presample: True 
   test:
     split: test
@@ -23,6 +23,7 @@ feature_keys: x,heights
 num_classes: 13
 batch_size: 32
 val_batch_size: 1
+
 
 dataloader:
   num_workers: 8 # used to be 6

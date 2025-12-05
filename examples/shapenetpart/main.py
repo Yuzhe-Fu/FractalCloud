@@ -18,7 +18,8 @@ import warnings
 import numpy as np
 from sklearn.metrics import confusion_matrix
 from collections import defaultdict, Counter
-
+import pdb
+import time
 torch.backends.cudnn.benchmark = False
 warnings.simplefilter(action='ignore', category=FutureWarning)
 sys.path.insert(0, os.path.abspath(
@@ -96,6 +97,12 @@ def get_ins_mious(pred, target, cls, cls2parts,
         ins_mious.append(torch.mean(torch.stack(part_ious)))
     return ins_mious
 
+def init_weights(m):
+    # 对常见层（例如卷积和全连接层）使用 Xavier 均匀初始化
+    if isinstance(m, (nn.Conv1d, nn.Conv2d, nn.Linear)):
+        nn.init.xavier_uniform_(m.weight)
+        if m.bias is not None:
+            nn.init.zeros_(m.bias)
 
 def main(gpu, cfg):
     if cfg.distributed:
@@ -177,7 +184,8 @@ def main(gpu, cfg):
             logging.info(f'\nresume val instance mIoU is {test_ins_miou}, val class mIoU is {test_cls_miou} \n ')
         else:
             if cfg.mode in ['val', 'test']:
-                load_checkpoint(model, pretrained_path=cfg.pretrained_path)
+                # load_checkpoint(model, pretrained_path=cfg.pretrained_path)
+                model.apply(init_weights)
                 test_ins_miou, test_cls_miou, test_cls_mious = validate_fn(model, val_loader, cfg,
                                                                             num_votes=cfg.num_votes,
                                                                             data_transform=voting_transform
@@ -191,7 +199,7 @@ def main(gpu, cfg):
                 load_checkpoint(model_module.encoder, pretrained_path=cfg.pretrained_path)
     else:
         logging.info('Training from scratch')
-
+    # pdb.set_trace()
     train_loader = build_dataloader_from_cfg(cfg.batch_size,
                                              cfg.dataset,
                                              cfg.dataloader,
@@ -297,30 +305,44 @@ def train_one_epoch(model, train_loader, criterion, optimizer, scheduler, epoch,
         target = data['y']
         data['x'] = get_features_by_keys(data, cfg.feature_keys)
 
-        logits = model(data)
-        if cfg.criterion_args.NAME != 'MultiShapeCrossEntropy':
-            loss = criterion(logits, target)
-        else:
-            loss = criterion(logits, target, data['cls'])
+        # pdb.set_trace()
+        # logits = model(data)
 
-        loss.backward()
+        with torch.cuda.amp.autocast(enabled=cfg.use_amp):
+            with torch.no_grad():
+                torch.cuda.synchronize()
+                time_start = time.time()
+                logits = model(data)
+                torch.cuda.synchronize()
+                time_end = time.time()
+                print(f"Time for forward is {time_end - time_start}")
 
-        if num_iter == cfg.step_per_update:
-            if cfg.get('grad_norm_clip') is not None:
-                torch.nn.utils.clip_grad_norm_(model.parameters(), cfg.grad_norm_clip)
-            num_iter = 0
-            optimizer.step()
-            optimizer.zero_grad()
-            if not cfg.sched_on_epoch:
-                scheduler.step(epoch)
 
-        loss_meter.update(loss.item(), n=batch_size)
-        if idx % cfg.print_freq:
-            pbar.set_description(f"Train Epoch [{epoch}/{cfg.epochs}] "
-                                 f"Loss {loss_meter.avg:.3f} "
-                                 )
-    train_loss = loss_meter.avg
-    return train_loss
+
+
+    #     if cfg.criterion_args.NAME != 'MultiShapeCrossEntropy':
+    #         loss = criterion(logits, target)
+    #     else:
+    #         loss = criterion(logits, target, data['cls'])
+
+    #     loss.backward()
+
+    #     if num_iter == cfg.step_per_update:
+    #         if cfg.get('grad_norm_clip') is not None:
+    #             torch.nn.utils.clip_grad_norm_(model.parameters(), cfg.grad_norm_clip)
+    #         num_iter = 0
+    #         optimizer.step()
+    #         optimizer.zero_grad()
+    #         if not cfg.sched_on_epoch:
+    #             scheduler.step(epoch)
+
+    #     loss_meter.update(loss.item(), n=batch_size)
+    #     if idx % cfg.print_freq:
+    #         pbar.set_description(f"Train Epoch [{epoch}/{cfg.epochs}] "
+    #                              f"Loss {loss_meter.avg:.3f} "
+    #                              )
+    # train_loss = loss_meter.avg
+    return 0
 
 
 @torch.no_grad()
@@ -344,7 +366,11 @@ def validate(model, val_loader, cfg, num_votes=0, data_transform=None):
             set_random_seed(v)
             if v > 0:
                 data['pos'] = data_transform(data['pos'])
+            torch.cuda.synchronize()
+            time0 = time.time()
             logits += model(data)
+            time1 = time.time()
+            print(f'Inference time: {time1 - time0}')
         logits /= (num_votes + 1)
         preds = logits.max(dim=1)[1]
         if cfg.get('refine', False):

@@ -9,7 +9,6 @@ import argparse, yaml, os, logging, numpy as np, csv, wandb, glob
 from tqdm import tqdm
 import torch, torch.nn as nn
 from torch import distributed as dist, multiprocessing as mp
-from torch.utils.tensorboard import SummaryWriter
 from torch_scatter import scatter
 from openpoints.utils import set_random_seed, save_checkpoint, load_checkpoint, resume_checkpoint, setup_logger_dist, \
     cal_model_parm_nums, Wandb, generate_exp_directory, resume_exp_directory, EasyConfig, dist_utils, find_free_port, load_checkpoint_inv
@@ -23,6 +22,12 @@ from openpoints.scheduler import build_scheduler_from_cfg
 from openpoints.loss import build_criterion_from_cfg
 from openpoints.models import build_model_from_cfg
 import warnings
+import pdb
+
+# fractal method
+from openpoints.models.layers.group import set_fractal_group_config
+from openpoints.models.layers.subsample import set_fractal_fps_config
+from openpoints.models.layers.upsampling import set_fractal_interp_config
 
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
@@ -123,7 +128,8 @@ def main(gpu, cfg):
     setup_logger_dist(cfg.log_path, cfg.rank, name=cfg.dataset.common.NAME)
     if cfg.rank == 0:
         Wandb.launch(cfg, cfg.wandb.use_wandb)
-        writer = SummaryWriter(log_dir=cfg.run_dir) if cfg.is_training else None
+        # writer = SummaryWriter(log_dir=cfg.run_dir) if cfg.is_training else None
+        writer = None
     else:
         writer = None
     set_random_seed(cfg.seed + cfg.rank, deterministic=cfg.deterministic)
@@ -411,30 +417,12 @@ def validate(model, val_loader, cfg, num_votes=1, data_transform=None, epoch=-1,
         data['epoch'] = epoch
         data['iter'] = total_iter 
         logits = model(data)
+        # pdb.set_trace()
         if 'mask' not in cfg.criterion_args.NAME or cfg.get('use_maks', False):
             cm.update(logits.argmax(dim=1), target)
         else:
             mask = data['mask'].bool()
             cm.update(logits.argmax(dim=1)[mask], target[mask])
-
-        """visualization in debug mode
-        from openpoints.dataset.vis3d import vis_points, vis_multi_points
-        coord = data['pos'].cpu().numpy()[0]
-        pred = logits.argmax(dim=1)[0].cpu().numpy()
-        label = target[0].cpu().numpy()
-        if cfg.ignore_index is not None:
-            if (label == cfg.ignore_index).sum() > 0:
-                pred[label == cfg.ignore_index] = cfg.num_classes
-                label[label == cfg.ignore_index] = cfg.num_classes
-        vis_multi_points([coord, coord], labels=[label, pred])
-        """
-        # tp, union, count = cm.tp, cm.union, cm.count
-        # if cfg.distributed:
-        #     dist.all_reduce(tp), dist.all_reduce(union), dist.all_reduce(count)
-        # miou, macc, oa, ious, accs = get_mious(tp, union, count)
-        # with np.printoptions(precision=2, suppress=True):
-        #     logging.info(f'{idx}-th cloud,  test_oa , test_macc, test_miou: {oa:.2f} {macc:.2f} {miou:.2f}, '
-        #                 f'\niou per cls is: {ious}')
 
     tp, union, count = cm.tp, cm.union, cm.count
     if cfg.distributed:
@@ -532,6 +520,7 @@ def test(model, data_list, cfg, num_votes=1):
         _type_: _description_
     """
     model.eval()  # set model to eval mode
+
     all_cm = ConfusionMatrix(num_classes=cfg.num_classes, ignore_index=cfg.ignore_index)
     set_random_seed(0)
     cfg.visualize = cfg.get('visualize', False)
@@ -556,121 +545,122 @@ def test(model, data_list, cfg, num_votes=1):
     gravity_dim = cfg.datatransforms.kwargs.gravity_dim
     nearest_neighbor = cfg.get('test_mode', 'multi_voxel') == 'nearest_neighbor'
     for cloud_idx, data_path in enumerate(data_list):
-        logging.info(f'Test [{cloud_idx}]/[{len_data}] cloud')
-        cm = ConfusionMatrix(num_classes=cfg.num_classes, ignore_index=cfg.ignore_index)
-        all_logits = []
-        coord, feat, label, idx_points, voxel_idx, reverse_idx_part, reverse_idx  = load_data(data_path, cfg)
-        if label is not None:
-            label = torch.from_numpy(label.astype(np.int).squeeze()).cuda(non_blocking=True)
+        if cloud_idx > -1:
+            logging.info(f'Test [{cloud_idx}]/[{len_data}] cloud')
+            cm = ConfusionMatrix(num_classes=cfg.num_classes, ignore_index=cfg.ignore_index)
+            all_logits = []
+            coord, feat, label, idx_points, voxel_idx, reverse_idx_part, reverse_idx  = load_data(data_path, cfg)
+            if label is not None:
+                label = torch.from_numpy(label.astype(np.int).squeeze()).cuda(non_blocking=True)
 
-        len_part = len(idx_points)
-        nearest_neighbor = len_part == 1
-        pbar = tqdm(range(len(idx_points)))
-        for idx_subcloud in pbar:
-            pbar.set_description(f"Test on {cloud_idx}-th cloud [{idx_subcloud}]/[{len_part}]]")
-            if not (nearest_neighbor and idx_subcloud>0):
-                idx_part = idx_points[idx_subcloud]
-                coord_part = coord[idx_part]
-                coord_part -= coord_part.min(0)
+            len_part = len(idx_points)
+            nearest_neighbor = len_part == 1
+            pbar = tqdm(range(len(idx_points)))
+            for idx_subcloud in pbar:
+                pbar.set_description(f"Test on {cloud_idx}-th cloud [{idx_subcloud}]/[{len_part}]]")
+                if not (nearest_neighbor and idx_subcloud>0):
+                    idx_part = idx_points[idx_subcloud]
+                    coord_part = coord[idx_part]
+                    coord_part -= coord_part.min(0)
 
-                feat_part =  feat[idx_part] if feat is not None else None
-                data = {'pos': coord_part}
-                if feat_part is not None:
-                    data['x'] = feat_part
-                if pipe_transform is not None:
-                    data = pipe_transform(data)
-                if 'heights' in cfg.feature_keys and 'heights' not in data.keys():
-                    if 'semantickitti' in cfg.dataset.common.NAME.lower():
-                        data['heights'] = torch.from_numpy((coord_part[:, gravity_dim:gravity_dim + 1] - coord_part[:, gravity_dim:gravity_dim + 1].min()).astype(np.float32)).unsqueeze(0)
+                    feat_part =  feat[idx_part] if feat is not None else None
+                    data = {'pos': coord_part}
+                    if feat_part is not None:
+                        data['x'] = feat_part
+                    if pipe_transform is not None:
+                        data = pipe_transform(data)
+                    if 'heights' in cfg.feature_keys and 'heights' not in data.keys():
+                        if 'semantickitti' in cfg.dataset.common.NAME.lower():
+                            data['heights'] = torch.from_numpy((coord_part[:, gravity_dim:gravity_dim + 1] - coord_part[:, gravity_dim:gravity_dim + 1].min()).astype(np.float32)).unsqueeze(0)
+                        else:
+                            data['heights'] = torch.from_numpy(coord_part[:, gravity_dim:gravity_dim + 1].astype(np.float32)).unsqueeze(0)
+                    if not cfg.dataset.common.get('variable', False):
+                        if 'x' in data.keys():
+                            data['x'] = data['x'].unsqueeze(0)
+                        data['pos'] = data['pos'].unsqueeze(0)
                     else:
-                        data['heights'] = torch.from_numpy(coord_part[:, gravity_dim:gravity_dim + 1].astype(np.float32)).unsqueeze(0)
-                if not cfg.dataset.common.get('variable', False):
-                    if 'x' in data.keys():
-                        data['x'] = data['x'].unsqueeze(0)
-                    data['pos'] = data['pos'].unsqueeze(0)
-                else:
-                    data['o'] = torch.IntTensor([len(coord)])
-                    data['batch'] = torch.LongTensor([0] * len(coord))
+                        data['o'] = torch.IntTensor([len(coord)])
+                        data['batch'] = torch.LongTensor([0] * len(coord))
 
-                for key in data.keys():
-                    data[key] = data[key].cuda(non_blocking=True)
-                data['x'] = get_features_by_keys(data, cfg.feature_keys)
-                logits = model(data)
-                """visualization in debug mode. !!! visulization is not correct, should remove ignored idx.
-                from openpoints.dataset.vis3d import vis_points, vis_multi_points
-                vis_multi_points([coord, coord_part], labels=[label.cpu().numpy(), logits.argmax(dim=1).squeeze().cpu().numpy()])
-                """
+                    for key in data.keys():
+                        data[key] = data[key].cuda(non_blocking=True)
+                    data['x'] = get_features_by_keys(data, cfg.feature_keys)
+                    logits = model(data)
+                    """visualization in debug mode. !!! visulization is not correct, should remove ignored idx.
+                    from openpoints.dataset.vis3d import vis_points, vis_multi_points
+                    vis_multi_points([coord, coord_part], labels=[label.cpu().numpy(), logits.argmax(dim=1).squeeze().cpu().numpy()])
+                    """
 
-            all_logits.append(logits)
-        all_logits = torch.cat(all_logits, dim=0)
-        if not cfg.dataset.common.get('variable', False):
-            all_logits = all_logits.transpose(1, 2).reshape(-1, cfg.num_classes)
+                all_logits.append(logits)
+            all_logits = torch.cat(all_logits, dim=0)
+            if not cfg.dataset.common.get('variable', False):
+                all_logits = all_logits.transpose(1, 2).reshape(-1, cfg.num_classes)
 
-        if not nearest_neighbor:
-            # average merge overlapped multi voxels logits to original point set
-            idx_points = torch.from_numpy(np.hstack(idx_points)).cuda(non_blocking=True)
-            all_logits = scatter(all_logits, idx_points, dim=0, reduce='mean')
-        else:
-            # interpolate logits by nearest neighbor
-            all_logits = all_logits[reverse_idx_part][voxel_idx][reverse_idx]
-        pred = all_logits.argmax(dim=1)
-        if label is not None:
-            cm.update(pred, label)
-        """visualization in debug mode
-        from openpoints.dataset.vis3d import vis_points, vis_multi_points
-        vis_multi_points([coord, coord], labels=[label.cpu().numpy(), all_logits.argmax(dim=1).squeeze().cpu().numpy()])
-        """
-        if cfg.visualize:
-            gt = label.cpu().numpy().squeeze() if label is not None else None
-            pred = pred.cpu().numpy().squeeze()
-            gt = cfg.cmap[gt, :] if gt is not None else None
-            pred = cfg.cmap[pred, :]
-            # output pred labels
-            if 's3dis' in dataset_name:
-                file_name = f'{dataset_name}-Area{cfg.dataset.common.test_area}-{cloud_idx}'
+            if not nearest_neighbor:
+                # average merge overlapped multi voxels logits to original point set
+                idx_points = torch.from_numpy(np.hstack(idx_points)).cuda(non_blocking=True)
+                all_logits = scatter(all_logits, idx_points, dim=0, reduce='mean')
             else:
-                file_name = f'{dataset_name}-{cloud_idx}'
-
-            write_obj(coord, feat,
-                      os.path.join(cfg.vis_dir, f'input-{file_name}.obj'))
-            # output ground truth labels
-            if gt is not None:
-                write_obj(coord, gt,
-                        os.path.join(cfg.vis_dir, f'gt-{file_name}.obj'))
-            # output pred labels
-            write_obj(coord, pred,
-                      os.path.join(cfg.vis_dir, f'{cfg.cfg_basename}-{file_name}.obj'))
-
-        if cfg.get('save_pred', False):
-            if 'semantickitti' in cfg.dataset.common.NAME.lower():
-                pred = pred + 1
+                # interpolate logits by nearest neighbor
+                all_logits = all_logits[reverse_idx_part][voxel_idx][reverse_idx]
+            pred = all_logits.argmax(dim=1)
+            if label is not None:
+                cm.update(pred, label)
+            """visualization in debug mode
+            from openpoints.dataset.vis3d import vis_points, vis_multi_points
+            vis_multi_points([coord, coord], labels=[label.cpu().numpy(), all_logits.argmax(dim=1).squeeze().cpu().numpy()])
+            """
+            if cfg.visualize:
+                gt = label.cpu().numpy().squeeze() if label is not None else None
                 pred = pred.cpu().numpy().squeeze()
-                pred = pred.astype(np.uint32)
-                upper_half = pred >> 16  # get upper half for instances
-                lower_half = pred & 0xFFFF  # get lower half for semantics (lower_half.shape) (100k+, )
-                lower_half = remap_lut_write[lower_half]  # do the remapping of semantics
-                pred = (upper_half << 16) + lower_half  # reconstruct full label
-                pred = pred.astype(np.uint32)
-                frame_id = data_path[0].split('/')[-1][:-4]
-                store_path = os.path.join(cfg.save_path, frame_id + '.label')
-                pred.tofile(store_path)
-            elif 'scannet' in cfg.dataset.common.NAME.lower():
-                pred = pred.cpu().numpy().squeeze()
-                label_int_mapping={0: 1, 1: 2, 2: 3, 3: 4, 4: 5, 5: 6, 6: 7, 7: 8, 8: 9, 9: 10, 10: 11, 11: 12, 12: 14, 13: 16, 14: 24, 15: 28, 16: 33, 17: 34, 18: 36, 19: 39}
-                pred=np.vectorize(label_int_mapping.get)(pred)
-                save_file_name=data_path.split('/')[-1].split('_')
-                save_file_name=save_file_name[0]+'_'+save_file_name[1]+'.txt'
-                save_file_name=os.path.join(cfg.save_path,save_file_name)
-                np.savetxt(save_file_name, pred, fmt="%d")
+                gt = cfg.cmap[gt, :] if gt is not None else None
+                pred = cfg.cmap[pred, :]
+                # output pred labels
+                if 's3dis' in dataset_name:
+                    file_name = f'{dataset_name}-Area{cfg.dataset.common.test_area}-{cloud_idx}'
+                else:
+                    file_name = f'{dataset_name}-{cloud_idx}'
 
-        if label is not None:
-            tp, union, count = cm.tp, cm.union, cm.count
-            miou, macc, oa, ious, accs = get_mious(tp, union, count)
-            with np.printoptions(precision=2, suppress=True):
-                logging.info(
-                    f'[{cloud_idx}]/[{len_data}] cloud,  test_oa , test_macc, test_miou: {oa:.2f} {macc:.2f} {miou:.2f}, '
-                    f'\niou per cls is: {ious}')
-            all_cm.value += cm.value
+                write_obj(coord, feat,
+                        os.path.join(cfg.vis_dir, f'input-{file_name}.obj'))
+                # output ground truth labels
+                if gt is not None:
+                    write_obj(coord, gt,
+                            os.path.join(cfg.vis_dir, f'gt-{file_name}.obj'))
+                # output pred labels
+                write_obj(coord, pred,
+                        os.path.join(cfg.vis_dir, f'{cfg.cfg_basename}-{file_name}.obj'))
+
+            if cfg.get('save_pred', False):
+                if 'semantickitti' in cfg.dataset.common.NAME.lower():
+                    pred = pred + 1
+                    pred = pred.cpu().numpy().squeeze()
+                    pred = pred.astype(np.uint32)
+                    upper_half = pred >> 16  # get upper half for instances
+                    lower_half = pred & 0xFFFF  # get lower half for semantics (lower_half.shape) (100k+, )
+                    lower_half = remap_lut_write[lower_half]  # do the remapping of semantics
+                    pred = (upper_half << 16) + lower_half  # reconstruct full label
+                    pred = pred.astype(np.uint32)
+                    frame_id = data_path[0].split('/')[-1][:-4]
+                    store_path = os.path.join(cfg.save_path, frame_id + '.label')
+                    pred.tofile(store_path)
+                elif 'scannet' in cfg.dataset.common.NAME.lower():
+                    pred = pred.cpu().numpy().squeeze()
+                    label_int_mapping={0: 1, 1: 2, 2: 3, 3: 4, 4: 5, 5: 6, 6: 7, 7: 8, 8: 9, 9: 10, 10: 11, 11: 12, 12: 14, 13: 16, 14: 24, 15: 28, 16: 33, 17: 34, 18: 36, 19: 39}
+                    pred=np.vectorize(label_int_mapping.get)(pred)
+                    save_file_name=data_path.split('/')[-1].split('_')
+                    save_file_name=save_file_name[0]+'_'+save_file_name[1]+'.txt'
+                    save_file_name=os.path.join(cfg.save_path,save_file_name)
+                    np.savetxt(save_file_name, pred, fmt="%d")
+
+            if label is not None:
+                tp, union, count = cm.tp, cm.union, cm.count
+                miou, macc, oa, ious, accs = get_mious(tp, union, count)
+                with np.printoptions(precision=2, suppress=True):
+                    logging.info(
+                        f'[{cloud_idx}]/[{len_data}] cloud,  test_oa , test_macc, test_miou: {oa:.2f} {macc:.2f} {miou:.2f}, '
+                        f'\niou per cls is: {ious}')
+                all_cm.value += cm.value
 
     if 'scannet' in cfg.dataset.common.NAME.lower():
         logging.info(f" Please select and zip all the files (DON'T INCLUDE THE FOLDER) in {cfg.save_path} and submit it to"
@@ -687,13 +677,42 @@ def test(model, data_list, cfg, num_votes=1):
 
 
 if __name__ == "__main__":
+    torch.backends.cudnn.enabled = False
+
     parser = argparse.ArgumentParser('Scene segmentation training/testing')
     parser.add_argument('--cfg', type=str, required=True, help='config file')
     parser.add_argument('--profile', action='store_true', default=False, help='set to True to profile speed')
+    parser.add_argument('--fractal_stages', type=str, default=None,
+                       help='Stages to use fractal method for encoder (group/subsample), e.g., "1,2" or None for original method')
+    parser.add_argument('--fractal_th', type=int, default=256,
+                       help='Threshold for fractal method (default: 256)')
+
     args, opts = parser.parse_known_args()
     cfg = EasyConfig()
     cfg.load(args.cfg, recursive=True)
     cfg.update(opts)  # overwrite the default arguments in yml
+
+    # fractal method config
+    if args.fractal_stages is not None:
+        fractal_stages = [int(x.strip()) for x in args.fractal_stages.split(',')]
+    else:
+        fractal_stages = None
+    fractal_th = args.fractal_th
+    
+    if fractal_stages is not None:
+        encoder_name = cfg.model.encoder_args.get('NAME', '')
+        if 'PointNet2' in encoder_name:
+            interp_stages = fractal_stages
+        elif 'PointNext' in encoder_name or 'PointVector' in encoder_name:
+            interp_stages = [-(5 - x) for x in fractal_stages]
+        else:
+            print(f"Encoder name {encoder_name} not formally supported for current fractal settings, you should check the stage information and revise the codes in main.py")
+            interp_stages = [-(5 - x) for x in fractal_stages] # default to PointNeXt, if other models, please revise this line.
+    else:
+        interp_stages = None
+    set_fractal_group_config(stages=fractal_stages, th=fractal_th)
+    set_fractal_fps_config(stages=fractal_stages, th=fractal_th)
+    set_fractal_interp_config(stages=interp_stages, th=fractal_th)
 
     if cfg.seed is None:
         cfg.seed = np.random.randint(1, 10000)
