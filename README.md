@@ -87,7 +87,7 @@ gdown --fuzzy --folder https://drive.google.com/drive/folders/1OOlyQGHXW8NpBIot6
 
 ```
 
-Alternatively, models can be downloaded manually from: [Google Drive link](https://drive.google.com/drive/folders/1OOlyQGHXW8NpBIot6KYSG_NkGb3NBX-p?usp=share_link).
+Alternatively, models can be downloaded manually from: [Google Drive link](https://drive.google.com/drive/folders/1OOlyQGHXW8NpBIot6KYSG_NkGb3NBX-p?usp=share_link) and [HuggingFace](https://huggingface.co/YuzheFu/FractalCloud/tree/main/Pretrained_Models).
 
 Please place downloaded checkpoints into their corresponding subfolders under `./Pretrained_Models`
 
