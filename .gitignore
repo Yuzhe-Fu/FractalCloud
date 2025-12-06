@@ -1,5 +1,6 @@
 results/
-Pretrained_Models
+Pretrained_Models/*
+!Pretrained_Models/.gitkeep
 Model_logs/
 log/
 Track.md
