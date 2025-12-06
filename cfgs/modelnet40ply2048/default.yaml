@@ -3,7 +3,7 @@ num_points: 1024  # number of poins actually used in training and evaluation
 dataset:
   common:
     NAME: ModelNet40Ply2048
-    data_dir: '/data/ModelNet40Ply2048'
+    data_dir: './data/ModelNet40Ply2048'
   train:
     split: train
     num_points: 1024  # in training, use sampled 1024 points for data augmentation. 

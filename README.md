@@ -50,7 +50,7 @@ docker run --name fractalcloud \
   fractalcloud_env:base \
   /bin/bash
 ```
-The container automatically activates the `openpoints` conda environment with all dependencies installed.
+You may see a `command not found` message in the terminal. This can be safely ignored. The container automatically activates the `openpoints` conda environment with all dependencies installed.
 
 ### Option 2: Local installation
 

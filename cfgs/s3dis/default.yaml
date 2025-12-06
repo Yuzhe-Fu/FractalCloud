@@ -2,7 +2,7 @@
 dataset:
   common:
     NAME: S3DIS
-    data_root: /data/S3DIS/s3disfull
+    data_root: ./data/S3DIS/s3disfull
     test_area: 5
     voxel_size: 0.04
   train:
