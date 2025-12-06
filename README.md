@@ -6,16 +6,23 @@ Official PyTorch implementation for the HPCA'26 paper:
 
 *by [Yuzhe Fu](https://yuzhe-fu.github.io), [Changchun Zhou](https://changchun-zhou.github.io), [Hancheng Ye](https://hanchengye.com), Bowen Duan, Qiyu Huang, [Chiyue Wei](https://dubcyfor3.github.io), [Cong Guo](https://guocong.me), [Hai “Helen” Li](https://ece.duke.edu/people/hai-helen-li/), [Yiran Chen](https://ece.duke.edu/people/yiran-chen/)*
 
+[[Paper (arXiv)](https://arxiv.org/abs/2511.07665)]
 ## Abstract
-This repository contains the software implementation of the FractalCloud architecture proposed in the paper. The core fractal algorithm is implemented in a thread-parallel recursive manner. All block-parallel point operations are validated through recursive execution to ensure numerical consistency between the software implementation and the hardware accelerator.
 
-Noted: Since our focus is to validate the algorithmic accuracy, we do not introduce custom GPU kernel optimizations for GPU performance.
+This repository provides the reference software implementation of **FractalCloud**. FractalCloud introduces a **fractal partitioning algorithm** that decomposes large point clouds into spatially coherent local blocks through a transversal logic, implemented in PyTorch using a **thread-parallel recursive procedure**. On top of this, we design a set of **block-parallel point operations** that fully decompose all point-wise computations into local operators. These operations are executed recursively to ensure **numerical consistency** between the software implementation and the hardware accelerator.
+
+> **Note:** The primary objective of this repository is to validate the **algorithmic correctness** of the proposed design. Therefore, we do not introduce custom GPU kernel optimizations or GPU-specific acceleration.
 
 After installation, this repository allows reproducing the network performance reported in the paper on:
 
-- **Classification**: ModelNet40 (PointNet++, PointNeXt-S)
-- **Segmentation**: S3DIS (PointNet++, PointNeXt-S, PointVector-L)
+- **Classification:** ModelNet40 (PointNet++, PointNeXt-S)  
+- **Segmentation:** S3DIS (PointNet++, PointNeXt-S, PointVector-L)
 
+The figure below summarizes the reproduced model accuracies:
+
+<p align="center">
+  <img src="./assets/model_accuracy.svg" width="70%">
+</p>
 
 ## Installation
 
@@ -48,7 +55,7 @@ wget https://huggingface.co/YuzheFu/FractalCloud/resolve/main/FractalCloud_docke
 gdown --fuzzy https://drive.google.com/file/d/1bjkS6beJeIV8MLgCd0CKbMack_s5fmAt/view?usp=share_link
 ```
 
-Import the Docker image (make sure docker is installed):
+Import the Docker image (make sure docker is installed in your environment):
 ```bash
 docker import FractalCloud_docker.tar fractalcloud_env:base
 ```
@@ -96,8 +103,11 @@ Below we provide example commands for reproducing evaluation results.
 
 #### ModelNet40 Classification (PointNet++)
 
-**Baseline:** The 90.8% accuracy is referenced from Fig. 16 of the *Mesorasi* paper.  [[Link](https://ieeexplore.ieee.org/document/9251968)]
+**Baseline 90.8%** is referenced from Fig. 16 of the *Mesorasi* paper. [[Link](https://ieeexplore.ieee.org/document/9251968)]
 
+**Mesorasi 89.9%** is referenced from Fig. 16 of the *Mesorasi* paper. [[Link](https://ieeexplore.ieee.org/document/9251968)]
+
+**Crescent 88.8%** is referenced from Fig. 13 of the *Crescent* paper. [[Link](https://dl.acm.org/doi/10.1145/3470496.3527395)]
 ```bash
 # Run with Fractal
 CUDA_VISIBLE_DEVICES=0 bash script/main_classification.sh \
@@ -158,8 +168,9 @@ CUDA_VISIBLE_DEVICES=0 bash script/main_segmentation.sh \
     mode=test \
     --fractal_stages "1,2" \
     --fractal_th 256 \
-    --pretrained_path ./Pretrained_Models/PNt_SEG_fractal/checkpoint/s3dis-pointnext-s_ckpt_best-623.pth
+    --pretrained_path ./Pretrained_Models/PNt_SEG_fractal/checkpoint/s3dis-pointnext-s_ckpt_best-620.pth
 ```
+**PNNPU 53.8%** is referenced from Table II of the *TCAS-II* paper. [[Link](https://ieeexplore.ieee.org/document/10430381?denied=)]
 
 #### S3DIS Segmentation (PointVector-L)
 ```bash
