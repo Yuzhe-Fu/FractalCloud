@@ -61,7 +61,7 @@ wget https://huggingface.co/YuzheFu/FractalCloud/resolve/main/FractalCloud_docke
 gdown --fuzzy https://drive.google.com/file/d/1bjkS6beJeIV8MLgCd0CKbMack_s5fmAt/view?usp=share_link
 ```
 
-Import the Docker image (make sure docker is installed in your environment):
+Import the Docker image. (Please ensure Docker is installed on your system)
 ```bash
 docker import FractalCloud_docker.tar fractalcloud_env:base
 ```
