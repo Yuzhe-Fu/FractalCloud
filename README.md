@@ -7,6 +7,12 @@ Official PyTorch implementation for the HPCA'26 paper:
 *by [Yuzhe Fu](https://yuzhe-fu.github.io), [Changchun Zhou](https://changchun-zhou.github.io), [Hancheng Ye](https://hanchengye.com), Bowen Duan, Qiyu Huang, [Chiyue Wei](https://dubcyfor3.github.io), [Cong Guo](https://guocong.me), [Hai “Helen” Li](https://ece.duke.edu/people/hai-helen-li/), [Yiran Chen](https://ece.duke.edu/people/yiran-chen/)*
 
 [[Paper (arXiv)](https://arxiv.org/abs/2511.07665)]
+
+<p align="center">
+  <img src="./assets/FractalCloud.png" width="70%">
+</p>
+
+
 ## Abstract
 
 This repository provides the reference software implementation of **FractalCloud**. FractalCloud introduces a **fractal partitioning algorithm** that decomposes large point clouds into spatially coherent local blocks through a transversal logic, implemented in PyTorch using a **thread-parallel recursive procedure**. On top of this, we design a set of **block-parallel point operations** that fully decompose all point-wise computations into local operators. These operations are executed recursively to ensure **numerical consistency** between the software implementation and the hardware accelerator.
