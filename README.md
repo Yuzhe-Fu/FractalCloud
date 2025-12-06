@@ -37,12 +37,24 @@ source download_DS.sh
 We provide two environment setups: Docker (recommended) or local installation.
 
 #### Option 1: Docker (recommended)
-Ensure Docker is installed, then
+We recommend downloading from HuggingFace (fast and stable).
+The archive file is approximately 45 GB.
 
 ```bash
-# Download docker container
+# Download from HuggingFace (recommended)
+wget https://huggingface.co/YuzheFu/FractalCloud/resolve/main/FractalCloud_docker.tar
+
+# Or Download from google drive
 gdown --fuzzy https://drive.google.com/file/d/1bjkS6beJeIV8MLgCd0CKbMack_s5fmAt/view?usp=share_link
+```
+
+Import the Docker image (make sure docker is installed):
+```bash
 docker import FractalCloud_docker.tar fractalcloud_env:base
+```
+
+Run the container:
+```bash
 # Please run this under ./FractalCloud
 docker run --name fractalcloud \
   -it --gpus all --shm-size 32G \
