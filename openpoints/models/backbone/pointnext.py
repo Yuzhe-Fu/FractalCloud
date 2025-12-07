@@ -65,7 +65,7 @@ class LocalAggregation(nn.Module):
         p, f = pf
         # neighborhood_features
         dp, fj = self.grouper(p, p, f)
-        print('in local aggregation')
+        # print('in local aggregation')
         fj = get_aggregation_feautres(p, dp, f, fj, self.feature_type)
         f = self.pool(self.convs(fj))
         """ DEBUG neighbor numbers. 

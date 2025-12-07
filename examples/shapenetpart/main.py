@@ -98,7 +98,7 @@ def get_ins_mious(pred, target, cls, cls2parts,
     return ins_mious
 
 def init_weights(m):
-    # 对常见层（例如卷积和全连接层）使用 Xavier 均匀初始化
+    # Initialize common layers (e.g., Conv1d, Conv2d, Linear) with Xavier uniform initialization
     if isinstance(m, (nn.Conv1d, nn.Conv2d, nn.Linear)):
         nn.init.xavier_uniform_(m.weight)
         if m.bias is not None:

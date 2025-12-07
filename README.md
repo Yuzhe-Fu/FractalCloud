@@ -39,12 +39,6 @@ git clone https://github.com/Yuzhe-Fu/FractalCloud.git
 cd FractalCloud
 ```
 
-### Dataset Preparation
-To download **ModelNet40** and **S3DIS**, run:
-```bash
-source download_DS.sh
-```
-
 ### Environment Setup
 
 We provide two environment setups: Docker (recommended) or local installation.
@@ -79,16 +73,24 @@ You may see a `command not found` message in the terminal. This can be safely ig
 
 ### Option 2: Local installation
 
-We recommend CUDA 11.x (tested with CUDA 11.3). Using unsupported CUDA versions may lead to installation failures. You can verify your CUDA version by running `nvcc --version` before executing the installation script.
+We recommend CUDA 11.x (tested with CUDA 11.3). Using unsupported CUDA versions may lead to installation and execution failures. You can verify your CUDA version by running `nvcc --version` before executing the installation script. 
 
 Then run:
 ```bash
 source install.sh
 ```
 
-## Pretrained Models
+> **Note:** 
+> - The `install.sh` in our repo is a simplified version of those from [PointNeXt](https://github.com/guochengqian/PointNeXt), with minimal dependencies tailored for FractalCloud. 
+> - If you encounter installation issues, please refer to the [Troubleshooting Guide](https://github.com/guochengqian/PointNeXt/issues) first. 
+> - If you need the full functionality of the original repo (e.g., running PointTransformer), please install the full environment following the instructions in the [PointNeXt](https://guochengqian.github.io/PointNeXt/) repository.
+> - Good luck!
+
+### Pretrained Models
 To download pretrained weights:
 ```bash
+# Please run this under ./workspace (if docker setup) 
+# or ./FractalCloud (if local installation)
 gdown --fuzzy --folder https://drive.google.com/drive/folders/1OOlyQGHXW8NpBIot6KYSG_NkGb3NBX-p?usp=share_link
 
 ```
@@ -99,6 +101,15 @@ Please place downloaded checkpoints into their corresponding subfolders under `.
 
 For reference and reproducibility, we also provide the evaluation logs associated with all evaluated models.
 
+### Dataset Preparation
+To download **ModelNet40** and **S3DIS**, run:
+```bash
+# Please run this under ./workspace (if docker setup) 
+# or ./FractalCloud (if local installation)
+source download_DS.sh
+```
+
+
 ## Experiments (Model Accuracy)
 
 All commands should be executed under:
@@ -106,6 +117,23 @@ All commands should be executed under:
 - `./FractalCloud` (local installation)
 
 Below we provide example commands for reproducing evaluation results.
+
+#### ModelNet40 Classification (PointNeXt-S)
+```bash
+# Baseline
+CUDA_VISIBLE_DEVICES=0 python examples/classification/main.py \
+    --cfg cfgs/modelnet40ply2048/pointnext-s.yaml \
+    mode=test \
+    --pretrained_path ./Pretrained_Models/PNt_CLA_original/checkpoint/modelnet40_pointnext-s_ckpt_best_9311.pth
+
+# With Fractal
+CUDA_VISIBLE_DEVICES=0 python examples/classification/main.py \
+    --cfg cfgs/modelnet40ply2048/pointnext-s.yaml \
+    mode=test \
+    --fractal_stages "1,2" \
+    --fractal_th 64 \
+    --pretrained_path ./Pretrained_Models/PNT_CLA_fractal/checkpoint/modelnet40_pointnext-s_ckpt_best_9238.pth \
+```
 
 #### ModelNet40 Classification (PointNet++)
 
@@ -124,22 +152,6 @@ CUDA_VISIBLE_DEVICES=0 bash script/main_classification.sh \
     --fractal_th 64
 ```
 
-#### ModelNet40 Classification (PointNeXt-S)
-```bash
-# Baseline
-CUDA_VISIBLE_DEVICES=0 python examples/classification/main.py \
-    --cfg cfgs/modelnet40ply2048/pointnext-s.yaml \
-    mode=test \
-    --pretrained_path ./Pretrained_Models/PNt_CLA_original/checkpoint/modelnet40_pointnext-s_ckpt_best_9311.pth
-
-# With Fractal
-CUDA_VISIBLE_DEVICES=0 python examples/classification/main.py \
-    --cfg cfgs/modelnet40ply2048/pointnext-s.yaml \
-    mode=test \
-    --fractal_stages "1,2" \
-    --fractal_th 64 \
-    --pretrained_path ./Pretrained_Models/PNT_CLA_fractal/checkpoint/modelnet40_pointnext-s_ckpt_best_9238.pth \
-```
 
 #### S3DIS Segmentation (PointNet++)
 ```bash
@@ -196,14 +208,42 @@ CUDA_VISIBLE_DEVICES=0 python examples/segmentation/main.py \
 ```
 
 ## Some Notes:
-1. Some frequent commands for docker usage
+### 1. Frequent commands for docker usage
 ```bash
 exit                               # exit Docker container
 docker start fractalcloud          # start container
 docker exec -it fractalcloud /bin/bash   # attach interactive shell
 docker stop fractalcloud           # stop container
 ```
-2. The `install.sh` in our repo is a simplified version of those from [PointNeXt](https://github.com/guochengqian/PointNeXt), with minimal dependencies tailored for FractalCloud. If you need the full functionality (e.g., running PointTransformer), please install the full environment following the instructions in the [PointNeXt](https://github.com/guochengqian/PointNeXt) repository.
+
+### 2. Scalability
+
+Our framework supports **both training and finetuning** for the baseline models as well as our proposed Fractal variants.  
+The default mode is `training`. Setting `mode=finetune` enables finetuning from pretrained weights.
+
+You can also use this framework to develop and train **your own partitioning method for PNNs**—simply replace the Fractal-related module with your implementation while keeping the rest of the workflow unchanged.
+
+### Examples
+
+```bash
+# Example1: training baseline PointNeXt-S on ModelNet40.
+CUDA_VISIBLE_DEVICES=0 python examples/classification/main.py \
+    --cfg cfgs/modelnet40ply2048/pointnext-s.yaml \
+
+# Example2: finetuning baseline PointNeXt-S on ModelNet40.
+CUDA_VISIBLE_DEVICES=0 python examples/classification/main.py \
+    --cfg cfgs/modelnet40ply2048/pointnext-s.yaml \
+    mode=finetune \
+    --pretrained_path ./Pretrained_Models/PNt_CLA_original/checkpoint/modelnet40_pointnext-s_ckpt_best_9311.pth
+
+# Example3: finetuning Fractal PointNeXt-S on ModelNet40.
+CUDA_VISIBLE_DEVICES=0 python examples/classification/main.py \
+    --cfg cfgs/modelnet40ply2048/pointnext-s.yaml \
+    mode=finetune \
+    --fractal_stages "1,2" \
+    --fractal_th 64 \
+    --pretrained_path ./Pretrained_Models/PNT_CLA_fractal/checkpoint/modelnet40_pointnext-s_ckpt_best_9238.pth \
+```
 
 ## Citation
 If you use this library, please kindly acknowledge our work:

@@ -197,7 +197,7 @@ def selectAfromB_chunk(A, B, chunk_size=100):
     for j in range(0, B.size(0), chunk_size):
         B_chunk = B[j:j+chunk_size]
         chunk_matches = (B_chunk[:, None] == A).all(-1).any(1)
-        matches[j:j+chunk_size] |= chunk_matches  # 聚合结果
+        matches[j:j+chunk_size] |= chunk_matches 
 
     indices = torch.where(matches)[0]
     C = B[matches]
