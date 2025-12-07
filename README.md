@@ -44,7 +44,7 @@ cd FractalCloud
 We provide two environment setups: Docker (recommended) or local installation.
 
 #### Option 1: Docker (recommended)
-We recommend downloading from HuggingFace (fast and stable).
+We recommend downloading from HuggingFace (stable).
 The archive file is approximately 45 GB.
 
 ```bash
@@ -99,7 +99,7 @@ Alternatively, models can be downloaded manually from: [Google Drive link](https
 
 Please place downloaded checkpoints into their corresponding subfolders under `./Pretrained_Models`
 
-For reference and reproducibility, we also provide the evaluation logs associated with all evaluated models.
+> Note: For reference and reproducibility, we also provide the evaluation logs associated with all evaluated models.
 
 ### Dataset Preparation
 To download **ModelNet40** and **S3DIS**, run:
