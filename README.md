@@ -207,9 +207,9 @@ CUDA_VISIBLE_DEVICES=0 python examples/segmentation/main.py \
     --pretrained_path ./Pretrained_Models/PVr_SEG_fractal/checkpoint/s3dis-pointvector-l_ckpt_best_7033.pth
 ```
 
-## Some Notes:
+## One more thing
 
-### 1. One more thing: Scalability
+### 1. Scalability
 
 Our framework supports **both training and finetuning** for the baseline models as well as our proposed Fractal variants.  
 The default mode is `training`. Setting `mode=finetune` enables finetuning from pretrained weights.
