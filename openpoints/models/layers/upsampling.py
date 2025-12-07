@@ -73,7 +73,6 @@ def selectAfromB(A, B):
 
 
 def process_branch(chunk_size, xyz, xyz_2dL_L1, size_2dL_L1, known_xyz, unknown_xyz, FPS_2dL_L1, FPS_th, i, j, tree_depth, executor=None, unknown_idx_all_batch_list=[], neighbor_known_idx_all_batch_list=[], dist_top_3_all_batch_list=[]):
-    # pdb.set_trace()
     if size_2dL_L1[j] != 0:
         xyz_L1 = xyz_2dL_L1[j]
         if FPS_2dL_L1[j] == 1:
@@ -82,7 +81,7 @@ def process_branch(chunk_size, xyz, xyz_2dL_L1, size_2dL_L1, known_xyz, unknown_
             if(unknown_L1_size != 0):
                 # print(tree_depth)
                 dist_top_3, idx_three_known_neighbors = myinterp(unknown_L1, known_L1)
-                # dist_top_3_batch = torch.cat((dist_top_3_batch, dist_top_3), dim=1)
+                
                 idx_three_known_neighbors_expanded = idx_three_known_neighbors.unsqueeze(-1).expand(-1, -1, -1, 3).long()
                 known_xyz_idx = torch.gather(known_L1.unsqueeze(2).expand(-1, -1, 3, -1), 1, idx_three_known_neighbors_expanded)
 
@@ -221,7 +220,6 @@ def part2_and_count_with_index(xyz, FPS_th, TreeDepth):
 
     xyz_2dList[0] = xyz[:, xyz_lessMid_indx[:,1], :]
     xyz_2dList[1] = xyz[:, xyz_largMid_indx[:,1], :]
-    # pdb.set_trace()
 
 
     return size_2dTensor, xyz_2dList, FPS_2dList
@@ -251,7 +249,7 @@ def part2_and_count_with_index_kdTree(xyz, FPS_th, TreeDepth):
 
 
 
-def Tree_interp_on_batch(know, unknow, FPS_th=128, chunk_size = 1000):
+def Fractal_interp_on_batch(know, unknow, FPS_th=128, chunk_size = 1000):
     # xyz = torch.cat((unknow, know), dim=1)
     xyz = unknow
     B = xyz.size(0)
@@ -408,7 +406,7 @@ class ThreeNN(Function):
         use_fractal_interp = fractal_interp_stages is not None and stage in fractal_interp_stages
         if use_fractal_interp:
             fractal_interp_th = get_fractal_interp_th()
-            dist2, idx = Tree_interp_on_batch(known, unknown, fractal_interp_th, chunk_size = 1000)
+            dist2, idx = Fractal_interp_on_batch(known, unknown, fractal_interp_th, chunk_size = 1000)
 
         else:
             pointnet2_cuda.three_nn_wrapper(B, N, m, unknown, known, dist2, idx)

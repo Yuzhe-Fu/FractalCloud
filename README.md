@@ -208,15 +208,8 @@ CUDA_VISIBLE_DEVICES=0 python examples/segmentation/main.py \
 ```
 
 ## Some Notes:
-### 1. Frequent commands for docker usage
-```bash
-exit                               # exit Docker container
-docker start fractalcloud          # start container
-docker exec -it fractalcloud /bin/bash   # attach interactive shell
-docker stop fractalcloud           # stop container
-```
 
-### 2. Scalability
+### 1. One more thing: Scalability
 
 Our framework supports **both training and finetuning** for the baseline models as well as our proposed Fractal variants.  
 The default mode is `training`. Setting `mode=finetune` enables finetuning from pretrained weights.
@@ -244,6 +237,14 @@ CUDA_VISIBLE_DEVICES=0 python examples/classification/main.py \
     --fractal_th 64 \
     --pretrained_path ./Pretrained_Models/PNT_CLA_fractal/checkpoint/modelnet40_pointnext-s_ckpt_best_9238.pth \
 ```
+### 2. Frequent commands for docker usage
+```bash
+exit                               # exit Docker container
+docker start fractalcloud          # start container
+docker exec -it fractalcloud /bin/bash   # attach interactive shell
+docker stop fractalcloud           # stop container
+```
+
 
 ## Citation
 If you use this library, please kindly acknowledge our work:

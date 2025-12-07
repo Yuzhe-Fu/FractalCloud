@@ -191,7 +191,7 @@ def selectAfromB(A, B):
     count = C.shape[0]
     return C.unsqueeze(0), count, indices
 
-def selectAfromB_chunk(A, B, chunk_size=100):
+def selectAfromB_chunk(A, B, chunk_size=100): # chunk here is for not OOM.
     matches = torch.zeros(B.shape[0], dtype=torch.bool, device=B.device)
 
     for j in range(0, B.size(0), chunk_size):
@@ -231,10 +231,8 @@ def mygroup(ctx, radius: float, nsample: int, xyz: torch.Tensor, new_xyz: torch.
 
 def part2_and_count_with_index(xyz, FPS_th, ori_index, TreeDepth):
     # a list with (3, 4) shape
-    # [max, min, mid, 1/4 point]
     direction = TreeDepth % 3
     xyz_onedirec = xyz[:, :, direction]
-    # xyz_not5 = xyz_onedirec[xyz_onedirec != 5.0]
     max_val = torch.max(xyz_onedirec)
     min_val = torch.min(xyz_onedirec)
     mid_val = (max_val + min_val)/2
@@ -277,9 +275,6 @@ def process_branch(xyz, xyz_2dL_L1, size_2dL_L1, nsample, new_xyz, radius, FPS_2
             # centerXYZ, centerXYZ_size, indices_center = selectAfromB(xyz_L1, new_xyz[i])
 
             if(centerXYZ_size != 0):
-                # if size_2dL_L1 == [32, 41] and tree_depth == 6:
-                #     print(1)
-                # idx = mygroup_torch(radius, nsample, xyz_L1, centerXYZ)
                 group_from_xyz = xyz if tree_depth > 1 else xyz_L1 
                 group_from_xyz_N = xyz.size(1) if tree_depth > 1 else xyz_L1.size(1) 
                 idx = torch.cuda.IntTensor(1, centerXYZ_size, nsample, device=xyz_L1.device).zero_()
@@ -294,21 +289,20 @@ def process_branch(xyz, xyz_2dL_L1, size_2dL_L1, nsample, new_xyz, radius, FPS_2
             else:
                 return None, None, center_idx_all_batch_list, group_idx_all_batch_list
         else:
-            # print(f'No process for xyz: {xyz.shape}, with its index as: {global_index.shape}, Continue Processing xyz_L1: {xyz_L1.shape}, with its index: {ori_index.shape}')
-            indices_center, global_index_group, new_center_idx_all_batch_list, new_group_idx_all_batch_list = TreeBlock_group_recursive_config(
+            indices_center, global_index_group, new_center_idx_all_batch_list, new_group_idx_all_batch_list = Fractal_group_recursive_config(
                 xyz_L1, nsample, new_xyz[i].unsqueeze(0), radius, FPS_th, tree_depth, ori_index, executor, center_idx_all_batch_list=center_idx_all_batch_list, group_idx_all_batch_list=group_idx_all_batch_list
             )
             return indices_center, global_index_group, new_center_idx_all_batch_list, new_group_idx_all_batch_list
     else:
         return None, None, center_idx_all_batch_list, group_idx_all_batch_list
 
-def TreeBlock_group_recursive_config(xyz, nsample, new_xyz, radius, FPS_th, tree_depth=0, global_index=None, executor=None, index_global_group=None, index_global_center=None, center_idx_all_batch_list=[], group_idx_all_batch_list=[]):
+def Fractal_group_recursive_config(xyz, nsample, new_xyz, radius, FPS_th, tree_depth=0, global_index=None, executor=None, index_global_group=None, index_global_center=None, center_idx_all_batch_list=[], group_idx_all_batch_list=[]):
     if executor is None:
         # Create a single ThreadPoolExecutor to be shared
         center_idx_all_batch_list = []
         group_idx_all_batch_list = []
         with ThreadPoolExecutor(max_workers=4096) as executor:
-            return TreeBlock_group_recursive_config(xyz, nsample, new_xyz, radius, FPS_th, tree_depth, global_index, executor, index_global_group, index_global_center, center_idx_all_batch_list, group_idx_all_batch_list)
+            return Fractal_group_recursive_config(xyz, nsample, new_xyz, radius, FPS_th, tree_depth, global_index, executor, index_global_group, index_global_center, center_idx_all_batch_list, group_idx_all_batch_list)
 
     if xyz.ndim == 3:
         B, N, _ = xyz.size()
@@ -389,9 +383,9 @@ class BallQuery(Function):
         use_fractal_group = fractal_group_stages is not None and stage in fractal_group_stages
         # print(f'stage: {stage}, fractal_group_stages: {fractal_group_stages}, use_fractal_group: {use_fractal_group}')
 
-        if use_fractal_group: # in (1, 2, 3, 4): #largest is 1
+        if use_fractal_group:
             Fractal_group_th = get_fractal_group_th()
-            _, _, indices_global, indx_global = TreeBlock_group_recursive_config(xyz, nsample, new_xyz, radius, Fractal_group_th)
+            _, _, indices_global, indx_global = Fractal_group_recursive_config(xyz, nsample, new_xyz, radius, Fractal_group_th)
             sorted_indices = torch.argsort(indices_global, dim=1)
             sorted_indices_expanded = sorted_indices.unsqueeze(-1).expand(-1, -1, indx_global.size(2))
             xyz_out_recursive = torch.gather(indx_global, dim=1, index=sorted_indices_expanded)

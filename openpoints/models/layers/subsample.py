@@ -99,11 +99,11 @@ def adjust_list_to_sum(numbers, target_sum):
 
 
 # recursive furthest point sampling by hancheng ye
-def TreeBlock_fps_recursive_config(xyz, npoint, FPS_th, tree_depth=0, global_index=None, executor=None):
+def Fractal_fps_recursive_config(xyz, npoint, FPS_th, tree_depth=0, global_index=None, executor=None):
     if executor is None:
         # Create a single ThreadPoolExecutor to be shared
         with ThreadPoolExecutor(max_workers=4096) as executor:
-            return TreeBlock_fps_recursive_config(xyz, npoint, FPS_th, tree_depth, global_index, executor)
+            return Fractal_fps_recursive_config(xyz, npoint, FPS_th, tree_depth, global_index, executor)
 
     if xyz.ndim == 3:
         B, N, _ = xyz.size()
@@ -195,7 +195,7 @@ def process_branch(xyz_2dL_L1, size_2dL_L1, PretNum_L1_checked, FPS_2dL_L1, i, j
             ).type_as(xyz_L1)
             global_index_update = torch.gather(global_index, 1, indx_L1.long())
         else:
-            SampXyz_L1, global_index_update = TreeBlock_fps_recursive_config(
+            SampXyz_L1, global_index_update = Fractal_fps_recursive_config(
                 xyz_L1, SampNum_L1, FPS_th, tree_depth, global_index, executor
             )
         return SampXyz_L1, global_index_update
@@ -246,7 +246,7 @@ class FurthestPointSampling(Function):
         # print(f'stage: {stage}, fractal_fps_stages: {fractal_fps_stages}, use_fractal_fps: {use_fractal_fps}')
         if use_fractal_fps: 
             fractal_fps_th = get_fractal_fps_th()
-            _, output = TreeBlock_fps_recursive_config(xyz, npoint, fractal_fps_th)
+            _, output = Fractal_fps_recursive_config(xyz, npoint, fractal_fps_th)
         else:
             output = torch.cuda.IntTensor(B, npoint)
             temp = torch.cuda.FloatTensor(B, N).fill_(1e10)
