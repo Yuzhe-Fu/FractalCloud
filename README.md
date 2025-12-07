@@ -251,7 +251,7 @@ If you use this library, please kindly acknowledge our work:
 ```tex
 @article{fu2025fractalcloud,
   title={FractalCloud: A Fractal-Inspired Architecture for Efficient Large-Scale Point Cloud Processing},
-  author={Fu, Yuzhe and Zhou, Changchun and Ye, Hancheng and Duan, Bowen and Huang, Qiyu and Wei, Chiyue and Guo, Cong and Li, Hai and Chen, Yiran and others},
+  author={Fu, Yuzhe and Zhou, Changchun and Ye, Hancheng and Duan, Bowen and Huang, Qiyu and Wei, Chiyue and Guo, Cong and Li, Hai and Chen, Yiran},
   journal={arXiv preprint arXiv:2511.07665},
   year={2025}
 }
