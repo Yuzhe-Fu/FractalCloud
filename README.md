@@ -15,9 +15,9 @@ Official PyTorch implementation for the HPCA'26 paper:
 
 ## Abstract
 
-This repository provides the reference software implementation of **FractalCloud**. FractalCloud introduces a **fractal partitioning algorithm** that decomposes large point clouds into spatially coherent local blocks through a transversal logic, implemented in PyTorch using a **thread-parallel recursive procedure**. On top of this, we design a set of **block-parallel point operations** that fully decompose all point-wise computations into local operators. These operations are executed recursively to ensure **numerical consistency** between the software implementation and the hardware accelerator.
+This repository provides the software implementation of HPCA'26 **FractalCloud**, which introduces a fractal partitioning algorithm to partition large point clouds into spatially coherent local blocks. FractalCloud further introduces a block-parallel point operations that decompose all-point computations into local operators. We ensure numerical consistency between the software implementation and the hardware accelerator.
 
-> **Note:** The primary objective of this repository is to validate the **algorithmic correctness** of the proposed design. Therefore, we do not introduce custom GPU kernel optimizations or GPU-specific acceleration.
+> **Note:** This repository is to validate the **algorithmic correctness** of our proposed design. Therefore, we do not introduce custom GPU kernel optimizations or GPU-specific acceleration.
 
 After installation, this repository allows reproducing the network performance reported in the paper on:
 
