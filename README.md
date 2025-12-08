@@ -76,7 +76,7 @@ You may see a `command not found` message in the terminal. This can be safely ig
 > docker exec -it fractalcloud /bin/bash
 > ```
 
-### Option 2: Local installation
+#### Option 2: Local installation
 
 We recommend CUDA 11.x (tested with CUDA 11.3) as required in [PointNeXt](https://github.com/guochengqian/PointNeXt). Other CUDA versions may lead to installation and execution failures. You can verify your CUDA version by running `nvcc --version` before executing the installation script. 
 
@@ -108,7 +108,7 @@ Please place downloaded checkpoints into their corresponding subfolders under `.
 
 > Note: We also provide the evaluation logs for all evaluated models as a reference. These logs correspond to the results reported in the paper and can be used to verify reproduced accuracies.
 
-### Dataset Preparation
+#### Dataset Preparation
 ----
 To download **ModelNet40** and **S3DIS**, run:
 ```bash
