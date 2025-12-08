@@ -4,7 +4,7 @@ Official PyTorch implementation for the HPCA'26 paper:
 
 **FractalCloud: A Fractal-Inspired Architecture for  Efficient Large-Scale Point Cloud Processing**
 
-*by [Yuzhe Fu](https://yuzhe-fu.github.io), [Changchun Zhou](https://changchun-zhou.github.io), [Hancheng Ye](https://hanchengye.com), Bowen Duan, Qiyu Huang, [Chiyue Wei](https://dubcyfor3.github.io), [Cong Guo](https://guocong.me), [Hai “Helen” Li](https://ece.duke.edu/people/hai-helen-li/), [Yiran Chen](https://ece.duke.edu/people/yiran-chen/)*
+*by [Yuzhe Fu](https://yuzhe-fu.github.io), [Changchun Zhou](https://changchun-zhou.github.io), [Hancheng Ye](https://hanchengye.com), [Bowen Duan](https://orcid.org/0009-0004-9085-5025), [Qiyu Huang](https://orcid.org/0009-0000-1970-9894), [Chiyue Wei](https://dubcyfor3.github.io), [Cong Guo](https://guocong.me), [Hai “Helen” Li](https://ece.duke.edu/people/hai-helen-li/), [Yiran Chen](https://ece.duke.edu/people/yiran-chen/)*
 
 [[Paper (arXiv)](https://arxiv.org/abs/2511.07665)]
 
@@ -73,7 +73,7 @@ You may see a `command not found` message in the terminal. This can be safely ig
 
 ### Option 2: Local installation
 
-We recommend CUDA 11.x (tested with CUDA 11.3). Using unsupported CUDA versions may lead to installation and execution failures. You can verify your CUDA version by running `nvcc --version` before executing the installation script. 
+We recommend CUDA 11.x (tested with CUDA 11.3) as required in [PointNeXt](https://github.com/guochengqian/PointNeXt). Other CUDA versions may lead to installation and execution failures. You can verify your CUDA version by running `nvcc --version` before executing the installation script. 
 
 Then run:
 ```bash
@@ -81,9 +81,8 @@ source install.sh
 ```
 
 > **Note:** 
-> - The `install.sh` in our repo is a simplified version of those from [PointNeXt](https://github.com/guochengqian/PointNeXt), with minimal dependencies tailored for FractalCloud. 
+> - Our provided `install.sh` is a simplified version of those from [PointNeXt](https://github.com/guochengqian/PointNeXt), with minimal dependencies tailored for FractalCloud. If you need the full functionality of the original repo (e.g., running PointTransformer), please refer to [PointNeXt](https://guochengqian.github.io/PointNeXt/).
 > - If you encounter installation issues, please refer to the [Troubleshooting Guide](https://github.com/guochengqian/PointNeXt/issues) first. 
-> - If you need the full functionality of the original repo (e.g., running PointTransformer), please install the full environment following the instructions in the [PointNeXt](https://guochengqian.github.io/PointNeXt/) repository.
 > - Good luck!
 
 ### Pretrained Models
