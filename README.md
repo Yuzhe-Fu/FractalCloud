@@ -122,7 +122,8 @@ All commands should be executed under:
 -  `./workspace` (Docker setup), or
 - `./FractalCloud` (local installation)
 
-Below we provide example commands for reproducing evaluation results. And please do not paste as one line. 
+Below we provide example commands for reproducing evaluation results.
+> Note: Please do not paste as one line. 
 
 #### ModelNet40 Classification (PointNeXt-S)
 ```bash
