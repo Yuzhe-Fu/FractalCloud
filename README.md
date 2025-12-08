@@ -40,7 +40,7 @@ cd FractalCloud
 ```
 
 ### Environment Setup
-
+----
 We provide two environment setups: Docker (recommended) or local installation.
 
 #### Option 1: Docker (recommended)
@@ -60,7 +60,7 @@ Import the Docker image. (Please ensure Docker is installed on your system)
 docker import FractalCloud_docker.tar fractalcloud_env:base
 ```
 
-Run the container:
+Start the container:
 ```bash
 # Please run this under ./FractalCloud
 docker run --name fractalcloud \
@@ -70,6 +70,11 @@ docker run --name fractalcloud \
   /bin/bash
 ```
 You may see a `command not found` message in the terminal. This can be safely ignored. The container automatically activates the `openpoints` conda environment with all dependencies installed.
+
+> Note: After the container has been created once, you can re-enter it without starting a new instance:
+> ```bash
+> docker exec -it fractalcloud /bin/bash
+> ```
 
 ### Option 2: Local installation
 
@@ -85,11 +90,14 @@ source install.sh
 > - If you encounter installation issues, please refer to the [Troubleshooting Guide](https://github.com/guochengqian/PointNeXt/issues) first. 
 > - Good luck!
 
-### Pretrained Models
+### Pretrained Models and Datasets
+----
+All commands should be executed under:
+-  `./workspace` (Docker setup), or
+- `./FractalCloud` (local installation)
+
 To download pretrained weights:
 ```bash
-# Please run this under ./workspace (if docker setup) 
-# or ./FractalCloud (if local installation)
 gdown --fuzzy --folder https://drive.google.com/drive/folders/1OOlyQGHXW8NpBIot6KYSG_NkGb3NBX-p?usp=share_link
 
 ```
@@ -98,13 +106,12 @@ Alternatively, models can be downloaded manually from: [Google Drive link](https
 
 Please place downloaded checkpoints into their corresponding subfolders under `./Pretrained_Models`
 
-> Note: For reference and reproducibility, we also provide the evaluation logs associated with all evaluated models.
+> Note: We also provide the evaluation logs for all evaluated models as a reference. These logs correspond to the results reported in the paper and can be used to verify reproduced accuracies.
 
 ### Dataset Preparation
+----
 To download **ModelNet40** and **S3DIS**, run:
 ```bash
-# Please run this under ./workspace (if docker setup) 
-# or ./FractalCloud (if local installation)
 source download_DS.sh
 ```
 
@@ -119,13 +126,13 @@ Below we provide example commands for reproducing evaluation results.
 
 #### ModelNet40 Classification (PointNeXt-S)
 ```bash
-# Baseline
+# Baseline - 93.1%
 CUDA_VISIBLE_DEVICES=0 python examples/classification/main.py \
     --cfg cfgs/modelnet40ply2048/pointnext-s.yaml \
     mode=test \
     --pretrained_path ./Pretrained_Models/PNt_CLA_original/checkpoint/modelnet40_pointnext-s_ckpt_best_9311.pth
 
-# With Fractal
+# With Fractal - 92.4%
 CUDA_VISIBLE_DEVICES=0 python examples/classification/main.py \
     --cfg cfgs/modelnet40ply2048/pointnext-s.yaml \
     mode=test \
@@ -138,11 +145,8 @@ CUDA_VISIBLE_DEVICES=0 python examples/classification/main.py \
 
 **Baseline 90.8%** is referenced from Fig. 16 of the *Mesorasi* paper. [[Link](https://ieeexplore.ieee.org/document/9251968)]
 
-**Mesorasi 89.9%** is referenced from Fig. 16 of the *Mesorasi* paper. [[Link](https://ieeexplore.ieee.org/document/9251968)]
-
-**Crescent 88.8%** is referenced from Fig. 13 of the *Crescent* paper. [[Link](https://dl.acm.org/doi/10.1145/3470496.3527395)]
 ```bash
-# Run with Fractal
+# With Fractal - 90.6%
 CUDA_VISIBLE_DEVICES=0 bash script/main_classification.sh \
     cfgs/modelnet40ply2048/pointnet++.yaml \
     mode=test \
@@ -151,16 +155,21 @@ CUDA_VISIBLE_DEVICES=0 bash script/main_classification.sh \
     --fractal_th 64
 ```
 
+**Mesorasi 89.9%** is referenced from Fig. 16 of the *Mesorasi* paper. [[Link](https://ieeexplore.ieee.org/document/9251968)]
+
+**Crescent 88.8%** is referenced from Fig. 13 of the *Crescent* paper. [[Link](https://dl.acm.org/doi/10.1145/3470496.3527395)]
+
+
 
 #### S3DIS Segmentation (PointNet++)
 ```bash
-# Baseline
+# Baseline - 61.6%
 CUDA_VISIBLE_DEVICES=0 python examples/segmentation/main.py \
     --cfg cfgs/s3dis/pointnet++.yaml \
     mode=test \
     --pretrained_path ./Pretrained_Models/PN++_SEG_original/checkpoint/s3dis-pointnet++_ckpt_best_616.pth
 
-# With Fractal
+# With Fractal - 61.8%
 CUDA_VISIBLE_DEVICES=0 python examples/segmentation/main.py \
     --cfg cfgs/s3dis/pointnet++.yaml \
     mode=test \
@@ -171,14 +180,14 @@ CUDA_VISIBLE_DEVICES=0 python examples/segmentation/main.py \
 
 #### S3DIS Segmentation (PointNeXt-S)
 ```bash
-# Baseline
+# Baseline - 62.6%
 CUDA_VISIBLE_DEVICES=0 bash script/main_segmentation.sh \
     cfgs/s3dis/pointnext-s.yaml \
     wandb.use_wandb=False \
     mode=test \
     --pretrained_path ./Pretrained_Models/PNt_SEG_original/checkpoint/s3dis-pointnext-s_ckpt_best_626.pth
 
-# With Fractal
+# With Fractal - 62.0%
 CUDA_VISIBLE_DEVICES=0 bash script/main_segmentation.sh \
     cfgs/s3dis/pointnext-s.yaml \
     wandb.use_wandb=False \
@@ -191,13 +200,13 @@ CUDA_VISIBLE_DEVICES=0 bash script/main_segmentation.sh \
 
 #### S3DIS Segmentation (PointVector-L)
 ```bash
-# Baseline
+# Baseline - 70.8%
 CUDA_VISIBLE_DEVICES=0 python examples/segmentation/main.py \
     --cfg cfgs/s3dis/pointvector-l.yaml \
     mode=test \
     --pretrained_path ./Pretrained_Models/PVr_SEG_original/checkpoint/s3dis-pointvector-l_ckpt_best_708.pth
 
-# With Fractal
+# With Fractal - 70.3%
 CUDA_VISIBLE_DEVICES=0 python examples/segmentation/main.py \
     --cfg cfgs/s3dis/pointvector-l.yaml \
     mode=test \
@@ -238,10 +247,10 @@ CUDA_VISIBLE_DEVICES=0 python examples/classification/main.py \
 ```
 ### 2. Frequent commands for docker usage
 ```bash
-exit                               # exit Docker container
-docker start fractalcloud          # start container
-docker exec -it fractalcloud /bin/bash   # attach interactive shell
-docker stop fractalcloud           # stop container
+docker start fractalcloud               # start the container (needed before exec if it is stopped)
+docker exec -it fractalcloud /bin/bash  # open an interactive shell inside the container
+exit                                    # exit the container shell (container continues running)
+docker stop fractalcloud                # stop the container
 ```
 
 
