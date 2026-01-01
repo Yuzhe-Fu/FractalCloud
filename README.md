@@ -46,7 +46,7 @@ cd FractalCloud
 We provide two environment setups: Docker (recommended) or local installation.
 
 #### Option 1: Docker (recommended)
-> Time: 20~30 min for downloading, 5~10min for one-click setup. 
+> Time: 20-30 min for downloading, 5-10min for one-click setup. 
 
 We recommend downloading from HuggingFace (stable).
 The archive file is approximately 45 GB.
@@ -81,7 +81,7 @@ You may see a `command not found` message in the terminal. This can be safely ig
 > ```
 
 #### Option 2: Local installation
-> Time: 30min~1.5h, depending on your server environment.
+> Time: 30min-1.5h, depending on your server environment.
 
 We recommend CUDA 11.x (tested with CUDA 11.3) as required in [PointNeXt](https://github.com/guochengqian/PointNeXt). Other CUDA versions may lead to installation and execution failures. You can verify your CUDA version by running `nvcc --version`. 
 > To set up a compatible CUDA 11.3 toolchain, we recommend using Anaconda for environment management and installing CUDA via conda:
