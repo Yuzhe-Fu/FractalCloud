@@ -17,7 +17,7 @@ All Rights Reserved 2018.
 
 
 
-void three_nn_wrapper_fast(int b, int n, int m, idx,  at::Tensor unknown_tensor, 
+void three_nn_wrapper_fast(int b, int n, int m,  at::Tensor unknown_tensor, 
     at::Tensor known_tensor, at::Tensor dist2_tensor, at::Tensor idx_tensor) {
     const float *unknown = unknown_tensor.data<float>();
     const float *known = known_tensor.data<float>();

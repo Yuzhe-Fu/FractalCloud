@@ -30,6 +30,8 @@ The figure below summarizes the reproduced model accuracies:
   <img src="./assets/model_accuracy.svg" width="70%">
 </p>
 
+> **Note:** We recommend using TITAN-class, RTX6000, RTX3090, or A100 GPUs (all tested successfully). Hopper architecture GPUs (e.g., H100) are not recommended. All results in this repo were obtained using TITAN GPUs.
+
 ## Installation
 
 Firstly, please Clone the repository:
@@ -44,6 +46,8 @@ cd FractalCloud
 We provide two environment setups: Docker (recommended) or local installation.
 
 #### Option 1: Docker (recommended)
+> Time: 20~30 min for downloading, 5~10min for one-click setup. 
+
 We recommend downloading from HuggingFace (stable).
 The archive file is approximately 45 GB.
 
@@ -52,7 +56,7 @@ The archive file is approximately 45 GB.
 wget https://huggingface.co/YuzheFu/FractalCloud/resolve/main/FractalCloud_docker.tar
 
 # Or Download from google drive
-gdown --fuzzy https://drive.google.com/file/d/1bjkS6beJeIV8MLgCd0CKbMack_s5fmAt/view?usp=share_link
+gdown --fuzzy "https://drive.google.com/file/d/1bjkS6beJeIV8MLgCd0CKbMack_s5fmAt/view"
 ```
 
 Import the Docker image. (Please ensure Docker is installed on your system)
@@ -77,18 +81,24 @@ You may see a `command not found` message in the terminal. This can be safely ig
 > ```
 
 #### Option 2: Local installation
+> Time: 30min~1.5h, depending on your server environment.
 
-We recommend CUDA 11.x (tested with CUDA 11.3) as required in [PointNeXt](https://github.com/guochengqian/PointNeXt). Other CUDA versions may lead to installation and execution failures. You can verify your CUDA version by running `nvcc --version` before executing the installation script. 
+We recommend CUDA 11.x (tested with CUDA 11.3) as required in [PointNeXt](https://github.com/guochengqian/PointNeXt). Other CUDA versions may lead to installation and execution failures. You can verify your CUDA version by running `nvcc --version`. 
+> To set up a compatible CUDA 11.3 toolchain, we recommend using Anaconda for environment management and installing CUDA via conda:
+> ```bash
+> conda install -y cuda=11.3.1 -c nvidia/label/cuda-11.3.1
+> ```
 
-Then run:
+The provided installation script is based on CUDA 11.3. If a different CUDA 11.x version is
+used, please adjust the script accordingly. The script will:
+- Check whether `conda` is available
+- Create a dedicated conda environment (`openpoints`)
+- Install PyTorch and a recommended CUDA runtime automatically
+
 ```bash
 source install.sh
 ```
-
-> **Note:** 
-> - Our provided `install.sh` is a simplified version of those from [PointNeXt](https://github.com/guochengqian/PointNeXt), with minimal dependencies tailored for FractalCloud. If you need the full functionality of the original repo (e.g., running PointTransformer), please refer to [PointNeXt](https://guochengqian.github.io/PointNeXt/).
-> - If you encounter installation issues, please refer to the [Troubleshooting Guide](https://github.com/guochengqian/PointNeXt/issues) first. 
-> - Good luck!
+> Notes: If you encounter installation issues, please refer to the [Troubleshooting Guide](https://github.com/guochengqian/PointNeXt/issues) first. Good luck!
 
 ### Pretrained Models and Datasets
 ----
@@ -96,9 +106,12 @@ All commands should be executed under:
 -  `./workspace` (Docker setup), or
 - `./FractalCloud` (local installation)
 
+To download **Pretrained Models** and **Datasets**, please ensure that `gdown` is available in your environment (It is already included in our Docker image and install.sh).
+If `gdown` is not installed, you may install it manually via: `pip install gdown`.
+
 To download pretrained weights:
 ```bash
-gdown --fuzzy --folder https://drive.google.com/drive/folders/1OOlyQGHXW8NpBIot6KYSG_NkGb3NBX-p?usp=share_link
+gdown --fuzzy --folder "https://drive.google.com/drive/folders/1OOlyQGHXW8NpBIot6KYSG_NkGb3NBX-p"
 
 ```
 
@@ -110,7 +123,10 @@ Please place downloaded checkpoints into their corresponding subfolders under `.
 
 #### Dataset Preparation
 ----
-To download **ModelNet40** and **S3DIS**, run:
+All commands should be executed under:
+-  `./workspace` (Docker setup), or
+- `./FractalCloud` (local installation)
+
 ```bash
 source download_DS.sh
 ```
@@ -122,7 +138,8 @@ All commands should be executed under:
 -  `./workspace` (Docker setup), or
 - `./FractalCloud` (local installation)
 
-Below we provide example commands for reproducing evaluation results.
+Below we provide example commands for reproducing evaluation results. Classification tasks use `Overall Accuracy (OA)` as the metric, while segmentation tasks use `mIoU` as the metric.
+
 > Note: Please do not paste as one line. 
 
 #### ModelNet40 Classification (PointNeXt-S)
@@ -254,6 +271,8 @@ exit                                    # exit the container shell (container co
 docker stop fractalcloud                # stop the container
 ```
 
+### 3. Notes 
+> Our provided `install.sh` is a simplified version of those from [PointNeXt](https://github.com/guochengqian/PointNeXt), with minimal dependencies tailored for FractalCloud. If you need the full functionality of the original repo (e.g., running PointTransformer), please refer to [PointNeXt](https://guochengqian.github.io/PointNeXt/).
 
 ## Citation
 If you use this library, please kindly acknowledge our work:
