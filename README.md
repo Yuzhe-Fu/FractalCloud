@@ -15,7 +15,7 @@ Official PyTorch implementation for the HPCA'26 paper:
 
 ## Abstract
 
-This repository provides the software implementation of HPCA'26 **FractalCloud**, which introduces a fractal partitioning algorithm to partition large point clouds into spatially coherent local blocks. Based on thi, FractalCloud further introduces block-parallel point operations that decompose all-point computations into local operators. We ensure numerical consistency between the software implementation and the hardware accelerator.
+This repository provides the software implementation of HPCA'26 **FractalCloud**, which introduces a fractal partitioning algorithm to partition large point clouds into spatially coherent local blocks. Based on this, FractalCloud further introduces block-parallel point operations that decompose all-point computations into local operators. We ensure numerical consistency between the software implementation and the hardware accelerator.
 
 > **Note:** This repository is to validate the **algorithmic correctness** of our proposed design. Therefore, we do not introduce custom GPU kernel optimizations or GPU-specific acceleration.
 
@@ -272,7 +272,10 @@ docker stop fractalcloud                # stop the container
 ```
 
 ### 3. Notes 
-> Our provided `install.sh` is a simplified version of those from [PointNeXt](https://github.com/guochengqian/PointNeXt), with minimal dependencies tailored for FractalCloud. If you need the full functionality of the original repo (e.g., running PointTransformer), please refer to [PointNeXt](https://guochengqian.github.io/PointNeXt/).
+> 1. Our provided `install.sh` is a simplified version of those from [PointNeXt](https://github.com/guochengqian/PointNeXt), with minimal dependencies tailored for FractalCloud. If you need the full functionality of the original repo (e.g., running PointTransformer), please refer to [PointNeXt](https://guochengqian.github.io/PointNeXt/).
+> 2. Minor accuracy variations may occur across different GPU architectures (e.g., PN++_CLA_fractal: 90.56% on TITAN vs. 90.64% on RTX 3090). These differences stem from GPU-dependent numerical behavior and do not affect the overall conclusions. All paper results were obtained on TITAN GPUs for consistency.
+> 3. The recursive algorithmic framework of the Fractal method implemented in `/openpoints/models/layers/{subsample.py, upsampling.py, group.py}` is **hardware-friendly and reusable in accelerator simulators**. To integrate this framework into your hardware simulation environment, one only needs to replace the existing CUDA wrappers with corresponding hardware simulation functions, while keeping the recursive structure unchanged.
+
 
 ## Citation
 If you use this library, please kindly acknowledge our work:
