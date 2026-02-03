@@ -6,7 +6,7 @@ Official PyTorch implementation for the HPCA'26 paper:
 
 *by [Yuzhe Fu](https://yuzhe-fu.github.io), [Changchun Zhou](https://changchun-zhou.github.io), [Hancheng Ye](https://hanchengye.com), [Bowen Duan](https://orcid.org/0009-0004-9085-5025), [Qiyu Huang](https://orcid.org/0009-0000-1970-9894), [Chiyue Wei](https://dubcyfor3.github.io), [Cong Guo](https://guocong.me), [Hai “Helen” Li](https://ece.duke.edu/people/hai-helen-li/), [Yiran Chen](https://ece.duke.edu/people/yiran-chen/)*
 
-[[Paper (arXiv)](https://arxiv.org/abs/2511.07665)]
+[[Paper (arXiv)](https://arxiv.org/abs/2511.07665)], [[Slides](https://github.com/Yuzhe-Fu/Yuzhe-Fu.github.io/blob/main/papers/FractalCloud-Slides.pdf)]
 
 <p align="center">
   <img src="./assets/FractalCloud.png" width="70%">
