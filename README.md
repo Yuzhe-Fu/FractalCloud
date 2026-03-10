@@ -263,7 +263,11 @@ CUDA_VISIBLE_DEVICES=0 python examples/classification/main.py \
     --fractal_th 64 \
     --pretrained_path ./Pretrained_Models/PNT_CLA_fractal/checkpoint/modelnet40_pointnext-s_ckpt_best_9238.pth \
 ```
-### 2. Frequent commands for docker usage
+
+### 2. Integration to hardware simulator 
+The recursive algorithmic framework of the Fractal method implemented in `/openpoints/models/layers/{subsample.py, upsampling.py, group.py}` is **hardware-friendly and reusable in accelerator simulators**. To integrate this framework into your hardware simulation environment, one only needs to replace the existing CUDA wrappers with corresponding hardware simulation functions, while keeping the recursive structure unchanged.
+
+### 3. Frequent commands for docker usage
 ```bash
 docker start fractalcloud               # start the container (needed before exec if it is stopped)
 docker exec -it fractalcloud /bin/bash  # open an interactive shell inside the container
@@ -271,20 +275,21 @@ exit                                    # exit the container shell (container co
 docker stop fractalcloud                # stop the container
 ```
 
-### 3. Notes 
+### 4. Notes 
 > 1. Our provided `install.sh` is a simplified version of those from [PointNeXt](https://github.com/guochengqian/PointNeXt), with minimal dependencies tailored for FractalCloud. If you need the full functionality of the original repo (e.g., running PointTransformer), please refer to [PointNeXt](https://guochengqian.github.io/PointNeXt/).
 > 2. Minor accuracy variations may occur across different GPU architectures (e.g., PN++_CLA_fractal: 90.56% on TITAN vs. 90.64% on RTX 3090). These differences stem from GPU-dependent numerical behavior and do not affect the overall conclusions. All paper results were obtained on TITAN GPUs for consistency.
-> 3. The recursive algorithmic framework of the Fractal method implemented in `/openpoints/models/layers/{subsample.py, upsampling.py, group.py}` is **hardware-friendly and reusable in accelerator simulators**. To integrate this framework into your hardware simulation environment, one only needs to replace the existing CUDA wrappers with corresponding hardware simulation functions, while keeping the recursive structure unchanged.
 
 
 ## Citation
-If you use this library, please kindly acknowledge our work:
+Hope this lib could be helpful. If you use this lib, please kindly acknowledge our work:
 ```tex
-@article{fu2025fractalcloud,
+@inproceedings{fu2026fractalcloud,
   title={FractalCloud: A Fractal-Inspired Architecture for Efficient Large-Scale Point Cloud Processing},
-  author={Fu, Yuzhe and Zhou, Changchun and Ye, Hancheng and Duan, Bowen and Huang, Qiyu and Wei, Chiyue and Guo, Cong and Li, Hai and Chen, Yiran},
-  journal={arXiv preprint arXiv:2511.07665},
-  year={2025}
+  author={Fu, Yuzhe and Zhou, Changchun and Ye, Hancheng and Duan, Bowen and Huang, Qiyu and Wei, Chiyue and Guo, Cong and Li, Hai Helen and Chen, Yiran},
+  booktitle={2026 IEEE International Symposium on High Performance Computer Architecture (HPCA)},
+  pages={1--15},
+  year={2026},
+  organization={IEEE}
 }
 ```
 
