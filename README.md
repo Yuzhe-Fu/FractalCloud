@@ -283,6 +283,16 @@ docker stop fractalcloud                # stop the container
 > 1. Our provided `install.sh` is a simplified version of those from [PointNeXt](https://github.com/guochengqian/PointNeXt), with minimal dependencies tailored for FractalCloud. If you need the full functionality of the original repo (e.g., running PointTransformer), please refer to [PointNeXt](https://guochengqian.github.io/PointNeXt/).
 > 2. Minor accuracy variations may occur across different GPU architectures (e.g., PN++_CLA_fractal: 90.56% on TITAN vs. 90.64% on RTX 3090). These differences stem from GPU-dependent numerical behavior and do not affect the overall conclusions. All paper results were obtained on TITAN GPUs for consistency.
 
+## Related Project — FlashFPS [![arXiv](https://img.shields.io/badge/Accepted-DAC%202026-red)](https://arxiv.org/abs/2604.17720)
+
+**FractalCloud** explores **full-stack hardware–software co-design** for large-scale point cloud processing, achieving significant acceleration on PNN inference.  
+If you are interested in a **pure algorithm optimization** that requires **no hardware changes**, you may also check out our related work:
+
+**[FlashFPS: Efficient Farthest Point Sampling for Large-Scale Point Clouds via Pruning and Caching](https://arxiv.org/abs/2604.17720)**, which is plug-and-play and delivers an average **5.16× end-to-end speedup** on GPUs.  
+Repository: [FlashFPS](https://github.com/Yuzhe-Fu/FlashFPS)
+
+> **Tip:** FlashFPS and FractalCloud share the **same environment**. If you've already set up one, the other runs out of the box ^_^
+
 
 ## Citation
 Hope this lib could be helpful. If you use this lib, please kindly acknowledge our work:
