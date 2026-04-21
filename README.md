@@ -1,5 +1,9 @@
 # FractalCloud
 
+[![IEEE](https://img.shields.io/badge/IEEE-Xplore-00629B?logo=ieee&logoColor=white)](https://ieeexplore.ieee.org/document/11408589)
+[![HPCA 2026](https://img.shields.io/badge/Accepted-HPCA%202026-blue)](https://conf.researchr.org/home/hpca-2026)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 Official PyTorch implementation for the HPCA'26 paper:
 
 **FractalCloud: A Fractal-Inspired Architecture for  Efficient Large-Scale Point Cloud Processing**
